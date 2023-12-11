@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>練習用註冊</title>
+    <style>
+        body {
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        input, button {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid red;
+            border-radius: 5px;
+            background-color: black;
+            color: red;
+            display: block;
+        }
+
+        input:focus {
+            color: white;
+        }
+
+        input.confirm-password {
+            border-color: red;
+        }
+
+        #error-message {
+            color: red;
+            display: none;
+        }
+
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" placeholder="user name"/>
+    <input type="password" placeholder="password"/>
+    <input class="confirm-password" type="password" placeholder="confirm password"/>
+    <button onclick="validatePasswords()">Sign up!</button>
+
+    <!-- 顯示錯誤訊息的區塊 -->
+    <div id="error-message">Passwords are inconsistent</div>
+
+    <script>
+        function validatePasswords() {
+            var passwordInput = document.querySelector('input[type="password"]');
+            var confirmPasswordInput = document.querySelector('.confirm-password');
+            var errorMessage = document.getElementById('error-message');
+
+            if (confirmPasswordInput.value !== passwordInput.value) {
+                // 顯示錯誤訊息
+                errorMessage.style.display = 'block';
+                // 將確認密碼框的邊框顏色設為紅色
+                confirmPasswordInput.style.border = '1px solid red';
+            } else {
+                // 隱藏錯誤訊息
+                errorMessage.style.display = 'none';
+                // 將確認密碼框的邊框顏色設為原來的紅色
+                confirmPasswordInput.style.border = '1px solid red';
+            }
+        }
+    </script>
+</body>
+</html>
+
