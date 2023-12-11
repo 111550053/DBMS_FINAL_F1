@@ -4,55 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formula 1 World Championship</title>
-    <style>
-        body {
-            background-color: black;
-            color: red;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            text-align: center;
-        }
-
-        #header {
-            padding: 20px;
-            font-size: 24px;
-            margin-top: 50px;
-        }
-
-        button {
-            margin-top: 10px;
-            background-color: transparent;
-            color: red;
-            padding: 10px 20px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        #signInSignUp {
-            display: flex;
-            justify-content: flex-end;
-            margin-right: 20px; /* Adjust margin-right for spacing */
-            margin-top: 20px; /* Move the buttons down */
-        }
-
-        #additional-buttons {
-            margin-top: 20px;
-        }
-
-        #additional-buttons button {
-            margin: 5px 0;
-        }
-
-        #description {
-            font-size: 16px; /* Adjust the font size */
-            color: white; /* Set the text color to white */
-        }
-    </style>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <div id="header">
@@ -61,12 +13,14 @@
             F1 一級方程式世界錦標賽(Formula 1 world championship) 是由國際汽車聯合會 (FIA) 批准並由一級方程式集團擁有的最高級別的單座賽車比賽。國際汽聯一級方程式世界錦標賽自 1950 年創始賽季以來一直是最重要的賽車形式之一。名稱中的“方程式”指的是所有參賽者的賽車必須遵守的一套規則。一級方程式賽季由一系列比賽組成，稱為大獎賽，這些比賽在世界各地的專用賽道和公共道路上舉行。而這個數據集裡包含了從1950年到2023年一級方程式世界錦標賽的比賽、車手、車隊、排位賽、賽道、圈速、進站等資訊。
         </p>
     </div>
-
     <div id="signInSignUp">
-        <button onclick="redirectToSignIn()">Sign In</button>
-        <button onclick="redirectToSignUp()">Sign Up</button>
+        <form method="post" action="/login">
+            <button type="submit">Sign in</button>
+        </form>
+        <form method="post" action="/signup">
+            <button type="submit">Sign up</button>
+        </form>
     </div>
-
     <div id="additional-buttons">
         <button onclick="invalid()">車手、車隊、賽車管理</button>
         <button onclick="invalid()">資料管理</button>
@@ -76,16 +30,13 @@
         <button>賽道分析</button>
         <button onclick="invalid()">創建車手、車隊、賽車</button>
     </div>
-
     <script>
         function redirectToSignIn() {
             window.location.href = 'login.html';
         }
-
         function redirectToSignUp() {
             window.location.href = 'signup.html';
         }
-
         function invalid() {
             alert('You are not logged in yet.');
         }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>練習用登入</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
     <style>
         body {
             background-color: black;
@@ -11,39 +12,23 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            color: red; /* Set default text color */
-        }
-
-        input, button {
-            margin-bottom: 10px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid red;
-            border-radius: 5px;
-            background-color: black;
             color: red;
-            display: block;
-        }
-
-        input:focus {
-            color: white;
-        }
-
-        button {
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <input type="text" placeholder="user name" id="usernameInput"/>
-    <input type="password" placeholder="password" id="passwordInput"/>
-    <button onclick="signIn()">Sign in!</button>
-
+    <form method="post" action="/afterlogin">
+        <div id="input-buttons">
+            <input type="text" placeholder="user name" id="usernameInput" name=username required/>
+            <input type="password" placeholder="password" id="passwordInput" name=password required/>
+            <button type="submit">Sign in!</button>
+        </div>
+        <div id="error-message">{{errormessage}}</div>
+    </form>
     <script>
         function signIn() {
             // Get the username from the input
             var username = document.getElementById('usernameInput').value;
-
             // Update the content on successful sign-in
             if (username) {
                 // Construct the URL with the username as a query parameter
@@ -51,7 +36,6 @@
                 window.location.href = redirectUrl;
             }
         }
-
         document.querySelectorAll('input').forEach(function(input) {
             input.addEventListener('input', function() {
                 this.style.color = 'white';
