@@ -214,7 +214,7 @@ create table status
 
 create table users
 (
-    userId smallint not null,
+    userId smallint not null AUTO_INCREMENT, -- auto assign index to new added user
     userName varchar(100) not null,
     passwd varchar(100) not null,
     admin boolean not null,
@@ -226,7 +226,7 @@ values (1, 'admin', 'admin', true);
 
 create table custom_content
 (
-    customDataId smallint not null,
+    customDataId smallint not null AUTO_INCREMENT, -- auto assign index to new added data
     userId smallint not null,
     customType tinyint not null,
     customcontentId smallint not null,

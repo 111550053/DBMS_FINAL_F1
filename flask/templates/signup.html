@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>練習用註冊</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <form method="post" action="/home">
+        <div id="input-buttons">
+            <input type="text" placeholder="user name" id="usernameInput" name=username required/>
+            <input type="password" placeholder="password" id="passwordInput" name=password required/>
+            <input type="password" placeholder="confirmPassword" id="confirmPasswordInput" name=confirmPassword required/>
+            <button type="button" onclick="if (validatePasswords()) document.forms[0].submit();">Sign up!</button>
+        </div>
+        <div id="error-message">{{errormessage}}</div>
+    </form>
+    <script>
+        function validatePasswords() {
+            var password = document.getElementById("passwordInput").value;
+            var confirmPassword = document.getElementById("confirmPasswordInput").value;
+            if (password !== confirmPassword) {
+                alert('Inconsistent password, check again!');
+                return false;
+            } else {
+                return true;
+            }
+        }
+    </script>
+</body>
+</html>
+

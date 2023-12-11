@@ -19,3 +19,18 @@
 
 ## Dataset we use
 [Formula 1 World Championship (1950 - 2023)](https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020)
+
+## How to use this repo
+This project is based on MySQL and flask.  
+1. Install python and MySQL.  
+2. Clone this repo.
+3. Run sql file **create_table.sql** in folder **dataset** (Might need the help from HW0) to create the database.
+4. Install python libraries:  
+    ```
+    pip install flask pymysql
+    ```
+5. Run the main python file:
+    ```
+    python3 app.py
+    ```
+    Open the browser, enter the link showed on the terminal and enjoy the program.
