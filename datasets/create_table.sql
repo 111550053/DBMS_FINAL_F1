@@ -71,9 +71,9 @@ create table constructor_results
     constructorId smallint not null,
     points tinyint,
     status varchar(20),
-    primary key (constructorResultsId)
-    -- foreign key (raceId) references races(raceId)
-    -- foreign key (constructorId) references constructors(constructorId)
+    primary key (constructorResultsId),
+    foreign key (raceId) references races(raceId),
+    foreign key (constructorId) references constructors(constructorId)
 );
 
 create table constructor_standings
@@ -85,9 +85,9 @@ create table constructor_standings
     position tinyint not null,
     positionText varchar(10) not null,
     wins tinyint not null,
-    primary key (constructorStandingsId)
-    -- foreign key (raceId) references races(raceId)
-    -- foreign key (constructorId) references constructors(constructorId)
+    primary key (constructorStandingsId),
+    foreign key (raceId) references races(raceId),
+    foreign key (constructorId) references constructors(constructorId)
 );
 
 
@@ -100,9 +100,9 @@ create table driver_standings
     position tinyint not null,
     positionText varchar(10) not null,
     wins tinyint not null,
-    primary key (driverStandingsId)
-    -- foreign key (raceId) references races(raceId),
-    -- foreign key (driverId) references drivers(driverId)
+    primary key (driverStandingsId),
+    foreign key (raceId) references races(raceId),
+    foreign key (driverId) references drivers(driverId)
 );
 
 create table lap_times
@@ -113,9 +113,9 @@ create table lap_times
     position tinyint not null,
     time varchar(20) not null,
     milliseconds mediumint not null,
-    primary key (raceId, driverId, lap)
-    -- foreign key (raceId) references races(raceId),
-    -- foreign key (driverId) references drivers(driverId)
+    primary key (raceId, driverId, lap),
+    foreign key (raceId) references races(raceId),
+    foreign key (driverId) references drivers(driverId)
 );
 
 create table pit_stops
@@ -142,7 +142,7 @@ create table qualifying
     q2 varchar(10),
     q3 varchar(10),
     primary key (qualifyId),
-    -- foreign key (raceId) references races(raceId),
+    foreign key (raceId) references races(raceId),
     foreign key (driverId) references drivers(driverId),
     foreign key (constructorId) references constructors(constructorId)
 );
@@ -169,7 +169,7 @@ create table results
     fastestLapSpeed float,
     statusId smallint,
     primary key (resultId),
-    -- foreign key (raceId) references races(raceId),
+    foreign key (raceId) references races(raceId),
     foreign key (driverId) references drivers(driverId),
     foreign key (constructorId) references constructors(constructorId)
 );
@@ -233,9 +233,44 @@ create table custom_content
     primary key (customDataId)
 );
 
-
 load data local infile './circuits.csv'
 into table circuits
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 lines;
+
+show warnings;
+
+load data local infile './drivers.csv'
+into table drivers
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 lines;
+
+show warnings;
+
+load data local infile './races.csv'
+into table races
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 lines;
+
+show warnings;
+
+load data local infile './lap_times.csv'
+into table lap_times
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 lines;
+
+show warnings;
+
+load data local infile './constructors.csv'
+into table constructors
 fields terminated by ','
 enclosed by '"'
 lines terminated by '\n'
@@ -261,35 +296,8 @@ ignore 1 lines;
 
 show warnings;
 
-load data local infile './constructors.csv'
-into table constructors
-fields terminated by ','
-enclosed by '"'
-lines terminated by '\n'
-ignore 1 lines;
-
-show warnings;
-
 load data local infile './driver_standings.csv'
 into table driver_standings
-fields terminated by ','
-enclosed by '"'
-lines terminated by '\n'
-ignore 1 lines;
-
-show warnings;
-
-load data local infile './drivers.csv'
-into table drivers
-fields terminated by ','
-enclosed by '"'
-lines terminated by '\n'
-ignore 1 lines;
-
-show warnings;
-
-load data local infile './lap_times.csv'
-into table lap_times
 fields terminated by ','
 enclosed by '"'
 lines terminated by '\n'
@@ -308,15 +316,6 @@ show warnings;
 
 load data local infile './qualifying.csv'
 into table qualifying
-fields terminated by ','
-enclosed by '"'
-lines terminated by '\n'
-ignore 1 lines;
-
-show warnings;
-
-load data local infile './races.csv'
-into table races
 fields terminated by ','
 enclosed by '"'
 lines terminated by '\n'
