@@ -83,5 +83,66 @@ def circuit_anal():
     data = cursor.fetchall()
     return render_template("circuit_anal.html",  data = data)
 
+@app.route('/race_analysis')
+def race_analysis():
+    return render_template('race_analysis.html')
+
+@app.route("/analysis_display", methods = ["GET",'POST'])
+def analysis_display():
+    driver_surname=request.args.get('driver_surname','')
+    driver_forename=request.args.get('driver_forename','')
+    selected_year=request.args.get('year','')
+    race_round=request.args.get('round','')
+    
+    query_check_year="SELECT COUNT(*) FROM races WHERE year=%s"
+    query_check_round = "SELECT COUNT(*) FROM races WHERE year = %s AND round = %s"
+
+    query = """
+        SELECT results.resultId,races.date, races.time,races.round, drivers.driverRef, drivers.forename, drivers.surname, 
+               constructors.constructorRef, constructors.name, races.url
+        FROM races, constructor_results, constructors, results, drivers
+        WHERE results.raceId = races.raceId
+              AND results.driverId = drivers.driverId
+              AND results.constructorId = constructors.constructorId
+              AND year = %s
+              AND (drivers.forename LIKE %s OR %s ='')
+              AND (drivers.surname LIKE %s OR %s = '')
+              AND (races.round = %s OR %s = '')
+        LIMIT 20
+    """
+
+    try:
+        cursor.execute(query_check_year, (selected_year,))
+        year_count = cursor.fetchone()[0]
+
+        if year_count == 0:
+            error_message = f"No races found for the year {selected_year}."
+            return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
+
+        cursor.execute(query_check_round, (selected_year, race_round))
+        round_count = cursor.fetchone()[0]
+
+        if round_count == 0:
+            error_message = f"No races found for round {race_round} in the year {selected_year}."
+            return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
+
+        if driver_surname or driver_forename or race_round:
+            cursor.execute(query, (selected_year, f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname, race_round, race_round))
+        else:
+            cursor.execute(query, (selected_year, '%', '', '%', '', '', ''))
+
+
+        data = cursor.fetchall()
+
+        if not data:
+            error_message=f"No driver found with the partial name '{driver_forename + ' ' +  driver_surname}'.\n Please search the name again!"
+            return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
+
+        return render_template('race_analysis.html', data=data, selected_year=selected_year)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return "An error occurred. Please check the server logs for details."
+
 if __name__ == "__main__":
     app.run("0.0.0.0", debug=True)
