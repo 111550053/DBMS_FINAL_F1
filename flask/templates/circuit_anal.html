@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula 1 World Championship</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="header">
+        <h1>賽道分析</h1>
+    </div>
+    <table style="margin-left: 20px;"> 
+            <th> 
+                <tr style="color: green; ">     
+                <td>circuit_id</td> 
+                <td>reference name</td> 
+                <td>name</td> 
+                <td>location</td> 
+                <td>country</td> 
+                <td>url</td> 
+        </tr> 
+            </th> 
+        {%for i in range(0, 77)%} 
+        <tr> 
+            <td>{{data[i][0]}}</td> 
+            <td>{{data[i][1]}}</td> 
+            <td>{{data[i][2]}}</td> 
+            <td>{{data[i][3]}}</td> 
+            <td>{{data[i][4]}}</td> 
+            <td>{{data[i][5]}}</td> 
+        {%endfor%} 
+</body>
+</html>

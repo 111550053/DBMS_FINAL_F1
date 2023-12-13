@@ -3,8 +3,8 @@ import pymysql
 
 db_connection = {
     "host" : "127.0.0.1",
-    "user" : "root" ,
-    "password" : "" ,
+    "user" : "eric" ,
+    "password" : "123456" ,
     "db" : "f1",
     "charset" : "utf8"
 }
@@ -76,6 +76,12 @@ def afterlogin():
 @app.route("/manage", methods = ["GET", "POST"])
 def manage():
     return render_template("manage.html")
+
+@app.route("/circuit_anal", methods = ["GET", "POST"])
+def circuit_anal():
+    cursor.execute("select circuitId,circuitRef,name,location,country,url from circuits")
+    data = cursor.fetchall()
+    return render_template("circuit_anal.html",  data = data)
 
 if __name__ == "__main__":
     app.run("0.0.0.0", debug=True)
