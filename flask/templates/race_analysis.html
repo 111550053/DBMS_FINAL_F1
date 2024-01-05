@@ -28,7 +28,7 @@
     
 
     <h1>Race Analysis</h1>
-    <form method="get" action="{{ url_for('analysis_display') }}">
+    <form method="get" action="{{ url_for('race_analysis_display') }}">
         <div>
             <label for="year">Select Year:</label>
             <select name="year" id="year" required>
@@ -75,16 +75,12 @@
         <table>
             <thead>
                 <tr>
-                    <th>resultId</th>
                     <th>date</th>
                     <th>time</th>
                     <th>round</th>
-                    <th>driver's reference name</th>
                     <th>driver's forename</th>
                     <th>driver's surname</th>
-                    <th>constructor's reference name</th>
                     <th>constructor's name</th>
-                    <th>more detail</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,10 +92,6 @@
                         <td>{{ row[3] }}</td>
                         <td>{{ row[4] }}</td>
                         <td>{{ row[5] }}</td>
-                        <td>{{ row[6] }}</td>
-                        <td>{{ row[7] }}</td>
-                        <td>{{ row[8] }}</td>
-                        <td>{{ row[9] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
