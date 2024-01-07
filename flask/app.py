@@ -2,11 +2,11 @@ from flask import Flask, render_template, request, redirect, url_for
 import pymysql
 
 db_connection = {
-    "host" : "127.0.0.1",
-    "user" : "eric" ,
-    "password" : "123456" ,
-    "db" : "f1",
-    "charset" : "utf8"
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "",
+    "db": "f1",
+    "charset": "utf8"
 }
 
 db = pymysql.connect(**db_connection)
@@ -18,6 +18,7 @@ app = Flask(__name__)
 currUserName = ""
 currUserPassword = ""
 login = False
+isadmin = False
 
 
 @app.route("/")
@@ -25,69 +26,120 @@ def root():
     return redirect(url_for("home"))
 
 
-@app.route("/home", methods = ["GET", "POST"])
+@app.route("/home", methods=["GET", "POST"])
 def home():
-    if request.method == "GET":
-        login = False
-        currUserName = ""
-        currUserPassword = ""
-
-    elif request.method == "POST":
-        userName = request.form["username"]
-        password = request.form["password"]
-
-        cursor.execute("select userName, passwd from users")
-        result = cursor.fetchall()
-        if ((userName, password) not in result):
-            cursor.execute("insert into users (userName, passwd, admin) values ('%s', '%s', false)" % (userName, password))
-            db.commit()
-        else:
-            return render_template("signup.html", errormessage = "user already exists!") # temporary solution
-    
     return render_template("home.html")
 
 
-@app.route("/login", methods = ["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html", errormessage = "")
+    return render_template("login.html", errormessage="")
 
 
-@app.route("/signup", methods = ["GET", "POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
-    return render_template("signup.html", errormessage = "")
+    return render_template("signup.html", errormessage="")
 
 
-@app.route("/afterlogin", methods = ["GET", "POST"])
+@app.route("/signup_check", methods=["GET", "POST"])
+def signup_check():
+    if request.method == "POST":
+        userName = request.form["username"]
+        password = request.form["password"]
+
+        cursor.execute("select userName from users")
+        result = cursor.fetchall()
+        if ((userName,) not in result):
+            query = "insert into users (userName, passwd, admin) values (%s, %s, false)"
+            cursor.execute(query, (userName, password))
+            db.commit()
+            return redirect(url_for("home"))
+        else:
+            return render_template("signup.html", errormessage="user already exists!")
+
+
+@app.route("/afterlogin", methods=["GET", "POST"])
 def afterlogin():
     if request.method == "POST":
         currUserName = request.form["username"]
         currUserPassword = request.form["password"]
-        cursor.execute("select userName, passwd from users")
+        cursor.execute("select userName, passwd, admin from users")
         result = cursor.fetchall()
-        if ((currUserName, currUserPassword) in result):
+
+        if ((currUserName, currUserPassword, 1) in result):
             login = True
-            return render_template("afterlogin.html", username = currUserName)
+            isadmin = True
+            return render_template("afterlogin.html", username=currUserName, admin=isadmin)
+        elif ((currUserName, currUserPassword, 0) in result):
+            login = True
+            isadmin = False
+            print("admin")
+            return render_template("afterlogin.html", username=currUserName, admin=isadmin)
         else:
             currUserName = ""
             currUserPassword = ""
-            return render_template("login.html", errormessage = "invalid user name or password!")
-            
+            login = False
+            isadmin = False
+            return render_template("login.html", errormessage="invalid user name or password!")
 
-@app.route("/manage", methods = ["GET", "POST"])
+
+@app.route("/manage", methods=["GET", "POST"])
 def manage():
     return render_template("manage.html")
 
-@app.route("/circuit_analysis", methods = ["GET", "POST"])
+
+@app.route("/user_management", methods=["GET", "POST"])
+def user_management():
+    cursor.execute("select * from users")
+    user_list = cursor.fetchall()
+    return render_template("user_management.html", data=user_list)
+
+
+@app.route("/user_update", methods=["GET", "POST"])
+def user_update():
+    update_user_id = request.args.get('user_id', '')
+    cursor.execute("select * from users where userId = %s" % (update_user_id))
+    user_list = cursor.fetchall()
+
+    query = "update users set admin = %s where userId = %s"
+
+    if (user_list[0][3] == 1 and (user_list[0][0] != 1)):
+        cursor.execute(query, ("0", update_user_id))
+    elif (user_list[0][3] == 0 and (user_list[0][0] != 1)):
+        cursor.execute(query, ("1", update_user_id))
+    db.commit()
+
+    return redirect(url_for("user_management"))
+
+
+@app.route("/user_remove")
+def user_remove():
+    remove_user_id = request.args.get('user_id', '')
+
+    cursor.execute("select * from users where userId = %s" % (remove_user_id))
+    user_list = cursor.fetchall()
+
+    query = "delete from users where userId = %s"
+
+    if (user_list[0][0] != 1):
+        cursor.execute(query, (remove_user_id))
+        db.commit()
+
+    return redirect(url_for("user_management"))
+
+
+@app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():
     cursor.execute("select circuitId,name,location,country from circuits")
     data = cursor.fetchall()
-    return render_template("circuit_analysis.html",  data = data)
+    return render_template("circuit_analysis.html",  data=data)
 
-@app.route("/circuit_analysis_display", methods = ["GET",'POST'])
+
+@app.route("/circuit_analysis_display", methods=["GET", 'POST'])
 def circuit_analysis_display():
-    circuitId=request.args.get('circuitId','')
-    selected_year=request.args.get('year','')
-    selected_type=request.args.get('type','')
+    circuitId = request.args.get('circuitId', '')
+    selected_year = request.args.get('year', '')
+    selected_type = request.args.get('type', '')
 
     query_check = """
         SELECT COUNT(*) 
@@ -95,7 +147,7 @@ def circuit_analysis_display():
         , (SELECT circuitId FROM races WHERE year = %s) as races
         WHERE circuits.circuitId = races.circuitId
     """
-    #circuit name, loc, country, 
+    # circuit name, loc, country,
     winTeamAndPodium = """
         WITH base as (SELECT races.raceId as raceId, races.round as round, circuits.name as circuitName, circuits.location as location, circuits.country as country
         FROM (SELECT circuitId, name, location, country FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
@@ -158,7 +210,7 @@ def circuit_analysis_display():
         AND base.raceId = P.raceId
         ORDER BY round
     """
-    
+
     maxLapSpeed = """
         WITH maxLapSpeed as (SELECT races.raceId as raceId, MAX(results.fastestLapSpeed) as maxSpeed
         FROM (SELECT circuitId FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
@@ -187,7 +239,7 @@ def circuit_analysis_display():
     """
 
     try:
-        cursor.execute(query_check, (circuitId,circuitId,selected_year,))
+        cursor.execute(query_check, (circuitId, circuitId, selected_year,))
         count = cursor.fetchone()[0]
 
         if count == 0:
@@ -196,39 +248,45 @@ def circuit_analysis_display():
 
         if(selected_type == 'B' and selected_year >= '2004'):
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
-                cursor.execute(maxLapSpeed, ('-1', '', selected_year,'-1', '', selected_year))
+                cursor.execute(
+                    maxLapSpeed, ('-1', '', selected_year, '-1', '', selected_year))
             else:
-                cursor.execute(maxLapSpeed, (circuitId, circuitId, selected_year, circuitId, circuitId, selected_year))
-        else :
+                cursor.execute(maxLapSpeed, (circuitId, circuitId,
+                               selected_year, circuitId, circuitId, selected_year))
+        else:
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
-                cursor.execute(winTeamAndPodium, ('-1', '', selected_year, selected_year,'-1', '', selected_year,'-1', '', selected_year,'-1', '', selected_year))
+                cursor.execute(winTeamAndPodium, ('-1', '', selected_year, selected_year,
+                               '-1', '', selected_year, '-1', '', selected_year, '-1', '', selected_year))
             else:
-                cursor.execute(winTeamAndPodium, (circuitId, circuitId, selected_year, selected_year,circuitId, circuitId, selected_year,circuitId, circuitId, selected_year,circuitId, circuitId, selected_year))
-        
+                cursor.execute(winTeamAndPodium, (circuitId, circuitId, selected_year, selected_year, circuitId,
+                               circuitId, selected_year, circuitId, circuitId, selected_year, circuitId, circuitId, selected_year))
+
         data = cursor.fetchall()
 
         if not data:
-            error_message=f"No data found with the circuit '{circuitId}' and year '{selected_year}'.\n Please search the name again!"
+            error_message = f"No data found with the circuit '{circuitId}' and year '{selected_year}'.\n Please search the name again!"
             return render_template('circuit_analysis.html', error_message=error_message, selected_year=selected_year, selected_circuit=circuitId)
 
-        return render_template('circuit_analysis.html', data = data, selected_year=selected_year, selected_circuit=circuitId)
+        return render_template('circuit_analysis.html', data=data, selected_year=selected_year, selected_circuit=circuitId)
 
     except Exception as e:
         print(f"Error: {str(e)}")
         return "An error occurred. Please check the server logs for details."
 
+
 @app.route('/race_analysis')
 def race_analysis():
     return render_template('race_analysis.html')
 
-@app.route("/race_analysis_display", methods = ["GET",'POST'])
+
+@app.route("/race_analysis_display", methods=["GET", 'POST'])
 def race_analysis_display():
-    driver_surname=request.args.get('driver_surname','')
-    driver_forename=request.args.get('driver_forename','')
-    selected_year=request.args.get('year','')
-    race_round=request.args.get('round','')
-    
-    query_check_year="SELECT COUNT(*) FROM races WHERE year = %s"
+    driver_surname = request.args.get('driver_surname', '')
+    driver_forename = request.args.get('driver_forename', '')
+    selected_year = request.args.get('year', '')
+    race_round = request.args.get('round', '')
+
+    query_check_year = "SELECT COUNT(*) FROM races WHERE year = %s"
     query_check_round = "SELECT COUNT(*) FROM races WHERE year = %s AND (round = %s OR %s = '')"
 
     query = """
@@ -251,9 +309,10 @@ def race_analysis_display():
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
 
         if (race_round != '0' and race_round[0] != '-'):
-            cursor.execute(query_check_round, (selected_year, race_round, race_round))
+            cursor.execute(query_check_round,
+                           (selected_year, race_round, race_round))
         else:
-            cursor.execute(query_check_round, (selected_year, race_round,''))
+            cursor.execute(query_check_round, (selected_year, race_round, ''))
         round_count = cursor.fetchone()[0]
 
         if round_count == 0:
@@ -261,20 +320,24 @@ def race_analysis_display():
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
 
         if (driver_surname or driver_forename) and (race_round != '0' and race_round[0] != '-'):
-            cursor.execute(query, (selected_year, race_round, race_round, f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname))
-        else :
+            cursor.execute(query, (selected_year, race_round, race_round,
+                           f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname))
+        else:
             if (driver_surname or driver_forename) and (race_round == '0' or race_round[0] == '-'):
-                cursor.execute(query, (selected_year, '-1', '', f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname))
+                cursor.execute(query, (selected_year, '-1', '',
+                               f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname))
             else:
                 if race_round == '0' or race_round[0] == '-':
-                    cursor.execute(query, (selected_year, '-1', '', '%', '', '%', ''))
-                else :
-                    cursor.execute(query, (selected_year, race_round, race_round, '%', '', '%', ''))
+                    cursor.execute(
+                        query, (selected_year, '-1', '', '%', '', '%', ''))
+                else:
+                    cursor.execute(
+                        query, (selected_year, race_round, race_round, '%', '', '%', ''))
 
         data = cursor.fetchall()
 
         if not data:
-            error_message=f"No driver found with the partial name '{driver_forename + ' ' +  driver_surname}'.\n Please search the name again!"
+            error_message = f"No driver found with the partial name '{driver_forename + ' ' +  driver_surname}'.\n Please search the name again!"
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
 
         return render_template('race_analysis.html', data=data, selected_year=selected_year)
@@ -282,6 +345,7 @@ def race_analysis_display():
     except Exception as e:
         print(f"Error: {str(e)}")
         return "An error occurred. Please check the server logs for details."
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", debug=True)

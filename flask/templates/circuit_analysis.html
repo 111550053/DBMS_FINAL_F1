@@ -39,7 +39,7 @@
         <div>
             <label for="year">Select Year:</label>
             <select name="year" id="year" required>
-                {% for year in range(2009, 1900, -1) %}
+                {% for year in range(2023, 1900, -1) %}
                     <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
             </select>
@@ -96,12 +96,12 @@
             <h2>{{selected_year}}Circuit information: {{selected_circuit}}</h2>
             <table style="margin-left: 20px;"> 
                 <th> 
-                    <tr style="color: rgb(255, 0, 0); ">    
-                    <td>round</td>  
-                    <td>circuit_name</td> 
-                    <td>location</td> 
-                    <td>country</td> 
-                    <td>max lap speed</td> 
+                    <tr style="color: rgb(255, 0, 0); ">
+                    <td>round</td>
+                    <td>circuit_name</td>
+                    <td>location</td>
+                    <td>country</td>
+                    <td>max lap speed</td>
                     <td>driver</td>
             </tr> 
                 </th> 

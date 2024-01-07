@@ -26,8 +26,16 @@
             <button type="submit">車手、車隊、賽車管理</button>
             <!--他會換行，先這樣看看-->
         </form>
-        <button>資料管理</button>
-        <button>使用者管理</button>
+        {% if admin %}
+            <button>資料管理</button>
+            <form method="GET" action="/user_management">
+                <button type="submit">使用者管理</button>
+            </form>
+        {% else %}
+            <button onclick="notAdmin()">資料管理</button>
+            <button onclick="notAdmin()">使用者管理</button>
+        {% endif%}
+
         <form method="GET" action="/race_analysis">
             <button>單場比賽分析</button>
             <!--他會換行，先這樣看看-->
@@ -58,6 +66,10 @@
         function redirectToManage() {
             window.location.href = 'manage.html';
         }
+        function notAdmin() {
+            alert('You are not admin! You can access this.');
+        }
+        
     </script>
 </body>
 </html>
