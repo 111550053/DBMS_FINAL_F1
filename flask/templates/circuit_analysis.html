@@ -43,7 +43,10 @@
                     <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
             </select>
-
+            <select name="type" id="type" required>
+                <option value="A">winner and podium</option>
+                <option value="B">max speed</option>
+            </select>
         <div>
             <label for="circuitId">circuit's Id:</label>
             <input type="text" name="circuitId" id="circuitId" placeholder="Type circuitId" value="{{ request.args.get('circuitId', '') }}">
@@ -52,7 +55,7 @@
         <div>
             <button type="submit">search</button>
         </div>
-        
+        <label for="note"><br></br>note that there are records of max lap speed after 2003</label>
     </form>
 
     {% if error_message %}
@@ -60,37 +63,60 @@
     {% endif %}
 
     {% if selected_year %}
-        <h2>{{selected_year}}Circuit information: {{ selected_circuit }}</h2>
-        <table style="margin-left: 20px;"> 
-            <th> 
-                <tr style="color: rgb(255, 0, 0); ">     
-                <td>circuit_name</td> 
-                <td>location</td> 
-                <td>country</td> 
-                <td>fastest lap speed</td> 
-                <td>driver of fastest lap speed</td>
-                <td>winner(constructor)</td> 
-                <td>first</td>
-                <td>second</td>
-                <td>third</td> 
-        </tr> 
-            </th> 
-        {%for row in data%} 
-        <tr> 
-            <td>{{row[0]}}</td> 
-            <td>{{row[1]}}</td> 
-            <td>{{row[2]}}</td> 
-            <td>{{row[3]}}</td> 
-            <td>{{row[4]}}</td> 
-            <td>{{row[5]}}</td> 
-            <td>{{row[6]}}</td> 
-            <td>{{row[7]}}</td> 
-            <td>{{row[8]}}</td> 
-        {%endfor%} 
-        </table>
-    {% endif %}
-
-    {% if not selected_year %}
+        {% if data[0][6] %}
+            <h2>{{selected_year}} Circuit information: {{selected_circuit}}</h2>
+            <table style="margin-left: 20px;"> 
+                <th> 
+                    <tr style="color: rgb(255, 0, 0); ">    
+                    <td>round</td>  
+                    <td>circuit_name</td> 
+                    <td>location</td> 
+                    <td>country</td> 
+                    <td>winner(constructor)</td> 
+                    <td>winner's points</td>
+                    <td>first</td>
+                    <td>second</td>
+                    <td>third</td> 
+            </tr> 
+                </th> 
+            {%for row in data%} 
+            <tr> 
+                <td>{{row[0]}}</td> 
+                <td>{{row[1]}}</td> 
+                <td>{{row[2]}}</td> 
+                <td>{{row[3]}}</td> 
+                <td>{{row[4]}}</td> 
+                <td>{{row[5]}}</td> 
+                <td>{{row[6]}}</td> 
+                <td>{{row[7]}}</td> 
+                <td>{{row[8]}}</td> 
+            {%endfor%} 
+            </table>
+        {% else %}
+            <h2>{{selected_year}}Circuit information: {{selected_circuit}}</h2>
+            <table style="margin-left: 20px;"> 
+                <th> 
+                    <tr style="color: rgb(255, 0, 0); ">    
+                    <td>round</td>  
+                    <td>circuit_name</td> 
+                    <td>location</td> 
+                    <td>country</td> 
+                    <td>max lap speed</td> 
+                    <td>driver</td>
+            </tr> 
+                </th> 
+            {%for row in data%} 
+            <tr> 
+                <td>{{row[0]}}</td> 
+                <td>{{row[1]}}</td> 
+                <td>{{row[2]}}</td> 
+                <td>{{row[3]}}</td> 
+                <td>{{row[4]}}</td> 
+                <td>{{row[5]}}</td> 
+            {%endfor%} 
+            </table>
+        {% endif %}
+    {% else %}
         <h2>{{selected_year}}Circuit information: {{ selected_circuit }}</h2>
         <table style="margin-left: 20px;"> 
             <th> 
