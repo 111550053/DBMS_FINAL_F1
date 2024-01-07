@@ -5,30 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formula 1 World Championship</title>
     <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #000000;
+        }
+        option{
+            color : #ff0000;
+            background-color: #000000;
+        }
+        select{
+            color : #ff0000;
+            background-color: #000000;
+        }
+    </style>
 </head>
 <body>
     <div id="header">
         <h1>賽道分析</h1>
     </div>
-    <table style="margin-left: 20px;"> 
+
+    <form method="get" action="{{ url_for('circuit_analysis_display') }}">
+        <div>
+            <label for="year">Select Year:</label>
+            <select name="year" id="year" required>
+                {% for year in range(2009, 1900, -1) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+
+        <div>
+            <label for="circuitId">circuit's Id:</label>
+            <input type="text" name="circuitId" id="circuitId" placeholder="Type circuitId" value="{{ request.args.get('circuitId', '') }}">
+        </div>
+
+        <div>
+            <button type="submit">search</button>
+        </div>
+        
+    </form>
+
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+
+    {% if selected_year %}
+        <h2>{{selected_year}}Circuit information: {{ selected_circuit }}</h2>
+        <table style="margin-left: 20px;"> 
             <th> 
-                <tr style="color: green; ">     
+                <tr style="color: rgb(255, 0, 0); ">     
+                <td>circuit_name</td> 
+                <td>location</td> 
+                <td>country</td> 
+                <td>fastest lap speed</td> 
+                <td>driver of fastest lap speed</td>
+                <td>winner(constructor)</td> 
+                <td>first</td>
+                <td>second</td>
+                <td>third</td> 
+        </tr> 
+            </th> 
+        {%for row in data%} 
+        <tr> 
+            <td>{{row[0]}}</td> 
+            <td>{{row[1]}}</td> 
+            <td>{{row[2]}}</td> 
+            <td>{{row[3]}}</td> 
+            <td>{{row[4]}}</td> 
+            <td>{{row[5]}}</td> 
+            <td>{{row[6]}}</td> 
+            <td>{{row[7]}}</td> 
+            <td>{{row[8]}}</td> 
+        {%endfor%} 
+        </table>
+    {% endif %}
+
+    {% if not selected_year %}
+        <h2>{{selected_year}}Circuit information: {{ selected_circuit }}</h2>
+        <table style="margin-left: 20px;"> 
+            <th> 
+                <tr style="color: rgb(255, 0, 0); ">     
                 <td>circuit_id</td> 
-                <td>reference name</td> 
                 <td>name</td> 
                 <td>location</td> 
                 <td>country</td> 
-                <td>url</td> 
         </tr> 
             </th> 
-        {%for i in range(0, 77)%} 
+        {%for row in data%} 
         <tr> 
-            <td>{{data[i][0]}}</td> 
-            <td>{{data[i][1]}}</td> 
-            <td>{{data[i][2]}}</td> 
-            <td>{{data[i][3]}}</td> 
-            <td>{{data[i][4]}}</td> 
-            <td>{{data[i][5]}}</td> 
+            <td>{{row[0]}}</td> 
+            <td>{{row[1]}}</td> 
+            <td>{{row[2]}}</td> 
+            <td>{{row[3]}}</td> 
         {%endfor%} 
+        </table>
+    {% endif %}
+    
 </body>
 </html>
