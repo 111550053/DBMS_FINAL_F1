@@ -73,3 +73,34 @@ input.confirm-password {
 #error-message {
     color: red;
 }
+
+table {
+    border: 1px solid red;
+    border-collapse: collapse;
+}
+
+tr {
+    border: 1px solid red;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.user-table {
+    border: 1px solid red;
+    border-collapse: collapse;
+    width: 70%;
+}
+
+.user-table th, .user-table td {
+    border: 1px solid red;
+    padding: 8px; /* Add padding for better spacing */
+}
+
+.user-table th {
+    background-color: rgb(255, 0, 0); /* Header background color */
+    color: white; /* Header text color */
+}
+
+.user-table td {
+    width: 25%; /* Set a fixed width for each column */
+}
