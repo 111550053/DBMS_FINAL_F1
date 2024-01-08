@@ -3,8 +3,8 @@ import pymysql
 
 db_connection = {
     "host": "127.0.0.1",
-    "user": "root",
-    "password": "",
+    "user": "eric",
+    "password": "123456",
     "db": "f1",
     "charset": "utf8"
 }
@@ -127,6 +127,70 @@ def user_remove():
 
     return redirect(url_for("user_management"))
 
+@app.route("/driver_analysis", methods = ["GET", "POST"])
+def driver_analysis():
+    cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+    driver = cursor.fetchall()
+    return render_template("driver_analysis.html",  driver = driver)
+
+@app.route("/driver_analysis_display", methods = ["GET", "POST"])
+def driver_analysis_display():
+    selected_year=request.args.get('year','')
+    selected_type=request.args.get('type','')
+    driver_surname=request.args.get('driver_surname','')
+    driver_forename=request.args.get('driver_forename','')
+
+    cursor.execute("SELECT MAX(round)/2 FROM races")
+    halfRound = cursor.fetchall()
+
+    race = """
+        select driverId,CONCAT(forename, ' ', surname) as name from drivers
+    """
+
+    whole = """
+    SELECT drivers.name, SUM(results.points) as totalPoints
+    FROM (SELECT raceId, driverId, points FROM results) as results
+    , (SELECT raceId FROM races WHERE year = %s) as races
+    , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
+    WHERE drivers.driverId = results.driverId
+    AND races.raceId = results.raceId
+    GROUP BY drivers.driverId
+    ORDER BY totalPoints DESC
+    """
+    first = """
+    SELECT drivers.name, SUM(results.points) as totalPoints
+    FROM (SELECT raceId, driverId, points FROM results) as results
+    , (SELECT raceId FROM races WHERE year = %s AND round <=  %s) as races
+    , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
+    WHERE drivers.driverId = results.driverId
+    AND races.raceId = results.raceId
+    GROUP BY drivers.driverId
+    ORDER BY totalPoints DESC
+    """
+    last = """
+    SELECT drivers.name, SUM(results.points) as totalPoints
+    FROM (SELECT raceId, driverId, points FROM results) as results
+    , (SELECT raceId FROM races WHERE year = %s AND round > %s) as races
+    , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
+    WHERE drivers.driverId = results.driverId
+    AND races.raceId = results.raceId
+    GROUP BY drivers.driverId
+    ORDER BY totalPoints DESC
+    """
+
+    if(selected_type == 'whole'):
+        cursor.execute(whole, (selected_year, driver_forename, driver_forename, driver_surname, driver_surname))
+    elif(selected_type == 'first'):
+        cursor.execute(first, (selected_year, halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
+    elif(selected_type == 'last'):
+        cursor.execute(last, (selected_year, halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
+    elif(selected_type == 'race'):
+        cursor.execute(race, )
+    else :
+        cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+    driver = cursor.fetchall()
+
+    return render_template("driver_analysis.html",  driver = driver, selected_year = selected_year, selected_type = selected_type)
 
 @app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():

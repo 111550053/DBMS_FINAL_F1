@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula 1 World Championship</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #000000;
+        }
+        option{
+            color : #ff0000;
+            background-color: #000000;
+        }
+        select{
+            color : #ff0000;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>車手分析</h1>
+    </div>
+    <form method="get" action="{{ url_for('driver_analysis_display') }}">
+        <div>
+            <label for="year">Select Year:</label>
+            <select name="year" id="year" required>
+                {% for year in range(2009, 1900, -1) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+            <select name="type" id="type" required>
+                <option value="race">單場分析</option>
+                <option value="whole">整季分析</option>
+                <option value="first">前半季分析</option>
+                <option value="last">後半季分析</option>
+            </select>
+        </div>
+        <br></br>
+        <div>
+            <h2> search for specific driver </h2>
+        </div>
+
+        <div>
+            <label for="driver_forename">Driver's Forename:</label>
+            <input type="text" name="driver_forename" id="driver_forename" placeholder="Type driver's forename" value="{{ request.args.get('driver_forename', '') }}">
+        </div>
+
+        <div>
+            <label for="driver_surname">Driver's Surname:</label>
+            <input type="text" name="driver_surname" id="driver_surname" placeholder="Type driver's surname" value="{{ request.args.get('driver_surname', '') }}">
+        </div>
+    
+        <div>
+            <button type="submit">search</button>
+        </div>
+        
+    </form>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+
+    {% if selected_type == "race" %}
+        <h2>driver: </h2>
+        <table style="margin-left: 20px;"> 
+            <th> 
+                <tr style="color: rgb(255, 0, 0); ">     
+                <td>name</td> 
+                <td>constructor</td>
+                <td>position</td>
+                <td>time(s)</td>
+                <td>fastest lap speed</td>
+        </tr> 
+            </th> 
+        {%for row in driver%} 
+        <tr> 
+            <td>{{row[0]}}</td> 
+            <td>{{row[1]}}</td> 
+            <td>{{row[2]}}</td> 
+            <td>{{row[3]}}</td> 
+            <td>{{row[4]}}</td> 
+        {%endfor%} 
+    {% elif selected_type == "whole" or selected_type == "first" or selected_type == "last"%}
+        <h2>driver: </h2>
+        <table style="margin-left: 20px;"> 
+            <th> 
+                <tr style="color: rgb(255, 0, 0); ">     
+                <td>name</td> 
+                <td>points</td>
+        </tr> 
+            </th> 
+        {%for row in driver%} 
+        <tr> 
+            <td>{{row[0]}}</td> 
+            <td>{{row[1]}}</td> 
+        {%endfor%} 
+    {% else %}  
+        <h2>driver: </h2>
+        <table style="margin-left: 20px;"> 
+            <th> 
+                <tr style="color: rgb(255, 0, 0); ">     
+                <td>driver_id</td> 
+                <td>name</td> 
+        </tr> 
+            </th> 
+        {%for row in driver%} 
+        <tr> 
+            <td>{{row[0]}}</td> 
+            <td>{{row[1]}}</td> 
+        {%endfor%} 
+        </table>
+    {% endif %}
+</body>
+</html>
