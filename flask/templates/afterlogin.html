@@ -27,7 +27,9 @@
             <!--他會換行，先這樣看看-->
         </form>
         {% if admin %}
-            <button>資料管理</button>
+            <form method="GET" action="/data_management">
+                <button type="submit">資料管理</button>
+            </form>
             <form method="GET" action="/user_management">
                 <button type="submit">使用者管理</button>
             </form>
