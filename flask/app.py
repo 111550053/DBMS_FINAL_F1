@@ -3,8 +3,8 @@ import pymysql
 
 db_connection = {
     "host": "127.0.0.1",
-    "user": "root",
-    "password": "",
+    "user": "eric",
+    "password": "123456",
     "db": "f1",
     "charset": "utf8"
 }
@@ -333,26 +333,25 @@ def circuit_analysis():
 @app.route("/circuit_analysis_display", methods=["GET", 'POST'])
 def circuit_analysis_display():
     circuitId = request.args.get('circuitId', '')
-    selected_year = request.args.get('year', '')
     selected_type = request.args.get('type', '')
 
     query_check = """
         SELECT COUNT(*) 
         FROM (SELECT circuitId FROM circuits WHERE circuitId LIKE %s OR %s = '') as circuits
-        , (SELECT circuitId FROM races WHERE year = %s) as races
+        , (SELECT circuitId FROM races) as races
         WHERE circuits.circuitId = races.circuitId
     """
     # circuit name, loc, country,
     winTeamAndPodium = """
-        WITH base as (SELECT races.raceId as raceId, races.round as round, circuits.name as circuitName, circuits.location as location, circuits.country as country
+        WITH base as (SELECT races.year, races.raceId as raceId, races.round as round, circuits.circuitId, circuits.name as circuitName, circuits.location as location, circuits.country as country
         FROM (SELECT circuitId, name, location, country FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId, round FROM races WHERE year = %s) as races
+        , (SELECT year, raceId, circuitId, round FROM races) as races
         WHERE circuits.circuitId = races.circuitId)
         ,
         winTeam as (SELECT Race.raceId as raceId, Race.constructorId as constructorId, Race.totalPoints as points
         FROM (SELECT raceId, MAX(totalPoints) as maxPoints
         FROM (SELECT races.raceId as raceId, SUM(results.points) as totalPoints
-        FROM (SELECT raceId FROM races WHERE year = %s) as races
+        FROM (SELECT raceId FROM races) as races
         , (SELECT raceId, constructorId, points FROM results) as results
         , (SELECT constructorId FROM constructors) as constructors
         WHERE races.raceId = results.raceId
@@ -367,7 +366,7 @@ def circuit_analysis_display():
         ,
         podium1 as (SELECT races.raceId as raceId, drivers.name as driver
         FROM (SELECT circuitId FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId FROM races WHERE year = %s) as races
+        , (SELECT raceId, circuitId FROM races) as races
         , (SELECT resultId, driverId, raceId FROM results WHERE position = '1') as results
         , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers) as drivers
         WHERE circuits.circuitId = races.circuitId
@@ -376,7 +375,7 @@ def circuit_analysis_display():
         ,
         podium2 as (SELECT races.raceId as raceId, drivers.name as driver
         FROM (SELECT circuitId FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId FROM races WHERE year = %s) as races
+        , (SELECT raceId, circuitId FROM races) as races
         , (SELECT resultId, driverId, raceId FROM results WHERE position = '2') as results
         , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers) as drivers
         WHERE circuits.circuitId = races.circuitId
@@ -385,14 +384,14 @@ def circuit_analysis_display():
         ,
         podium3 as (SELECT races.raceId as raceId, drivers.name as driver
         FROM (SELECT circuitId FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId FROM races WHERE year = %s) as races
+        , (SELECT raceId, circuitId FROM races) as races
         , (SELECT resultId, driverId, raceId FROM results WHERE position = '3') as results
         , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers) as drivers
         WHERE circuits.circuitId = races.circuitId
         AND races.raceId = results.raceId
         AND results.driverId = drivers.driverId)
 
-        SELECT base.round, base.circuitName, base.location, base.country, W.winTeam as winTeam, W.points, first, second, third
+        SELECT base.year, base.round, base.circuitId, base.circuitName, base.location, base.country, W.winTeam as winTeam, W.points, first, second, third
         FROM (SELECT podium1.raceId as raceId, podium1.driver as first, podium2.driver as second, podium3.driver as third
         FROM podium1, podium2, podium3
         WHERE podium1.raceId = podium2.raceId
@@ -403,22 +402,22 @@ def circuit_analysis_display():
         WHERE winTeam.constructorId = constructors.constructorId) as W, base
         WHERE P.raceId = W.raceId
         AND base.raceId = P.raceId
-        ORDER BY round
+        ORDER BY year DESC, round DESC
     """
 
     maxLapSpeed = """
         WITH maxLapSpeed as (SELECT races.raceId as raceId, MAX(results.fastestLapSpeed) as maxSpeed
         FROM (SELECT circuitId FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId FROM races WHERE year = %s) as races
+        , (SELECT raceId, circuitId FROM races) as races
         , (SELECT raceId, fastestLapSpeed FROM results) as results
         WHERE circuits.circuitId = races.circuitId
         AND races.raceId = results.raceId
         GROUP BY races.raceId)
         ,
-        base as (SELECT races.raceId as raceId, races.round, circuits.name as circuitName, circuits.location as location, circuits.country as country, 
+        base as (SELECT races.year, races.raceId as raceId, races.round, circuits.circuitId as circuitId,circuits.name as circuitName, circuits.location as location, circuits.country as country, 
         results.fastestLapSpeed as lapSpeed, CONCAT(drivers.forename,' ',drivers.surname) as driver
         FROM (SELECT circuitId, name, location, country FROM circuits WHERE (circuitId LIKE %s OR %s = '')) as circuits
-        , (SELECT raceId, circuitId, round FROM races WHERE year = %s) as races
+        , (SELECT year, raceId, circuitId, round FROM races) as races
         , (SELECT resultId, raceId, driverId, constructorId, fastestLapSpeed, points FROM results) as results
         , (SELECT driverId, forename, surname, nationality FROM drivers) as drivers
         , (SELECT constructorId, name, nationality FROM constructors) as constructors
@@ -427,42 +426,42 @@ def circuit_analysis_display():
         AND results.driverId = drivers.driverId
         AND results.constructorId = constructors.constructorId)
 
-        SELECT base.round, base.circuitName, base.location, base.country, base.lapSpeed, base.driver
+        SELECT base.year, base.round, base.circuitId, base.circuitName, base.location, base.country, base.lapSpeed, base.driver
         FROM base, maxLapSpeed
         WHERE maxLapSpeed.maxSpeed = base.lapSpeed
         AND base.raceId = maxLapSpeed.raceId
+        ORDER BY base.year DESC, base.round DESC
     """
 
     try:
-        cursor.execute(query_check, (circuitId, circuitId, selected_year,))
+        cursor.execute(query_check, (circuitId, circuitId))
         count = cursor.fetchone()[0]
 
         if count == 0:
-            error_message = f"No races in {circuitId} found for the year {selected_year}."
-            return render_template('circuit_analysis.html', error_message=error_message, selected_year=selected_year, selected_circuit=circuitId)
+            error_message = f"No races in {circuitId} found"
+            return render_template('circuit_analysis.html', error_message=error_message)
 
-        if(selected_type == 'B' and selected_year >= '2004'):
+        if(selected_type == 'B'):
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
                 cursor.execute(
-                    maxLapSpeed, ('-1', '', selected_year, '-1', '', selected_year))
+                    maxLapSpeed, ('-1', '', '-1', ''))
             else:
-                cursor.execute(maxLapSpeed, (circuitId, circuitId,
-                               selected_year, circuitId, circuitId, selected_year))
+                cursor.execute(maxLapSpeed, (circuitId, circuitId, circuitId, circuitId))
         else:
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
-                cursor.execute(winTeamAndPodium, ('-1', '', selected_year, selected_year,
-                               '-1', '', selected_year, '-1', '', selected_year, '-1', '', selected_year))
+                cursor.execute(winTeamAndPodium, ('-1', '',
+                               '-1', '', '-1', '', '-1', ''))
             else:
-                cursor.execute(winTeamAndPodium, (circuitId, circuitId, selected_year, selected_year, circuitId,
-                               circuitId, selected_year, circuitId, circuitId, selected_year, circuitId, circuitId, selected_year))
+                cursor.execute(winTeamAndPodium, (circuitId, circuitId, circuitId,
+                               circuitId, circuitId, circuitId, circuitId, circuitId))
 
         data = cursor.fetchall()
 
         if not data:
-            error_message = f"No data found with the circuit '{circuitId}' and year '{selected_year}'.\n Please search the name again!"
-            return render_template('circuit_analysis.html', error_message=error_message, selected_year=selected_year, selected_circuit=circuitId)
+            error_message = f"No data found with the circuit '{circuitId}'.\n Please search the name again!"
+            return render_template('circuit_analysis.html', error_message=error_message)
 
-        return render_template('circuit_analysis.html', data=data, selected_year=selected_year, selected_circuit=circuitId)
+        return render_template('circuit_analysis.html',selected_type = selected_type, data=data)
 
     except Exception as e:
         print(f"Error: {str(e)}")

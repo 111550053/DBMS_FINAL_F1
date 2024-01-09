@@ -37,38 +37,33 @@
 
     <form method="get" action="{{ url_for('circuit_analysis_display') }}">
         <div>
-            <label for="year">Select Year:</label>
-            <select name="year" id="year" required>
-                {% for year in range(2023, 1900, -1) %}
-                    <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-            </select>
+            <h2>circuit's Id:</h2>
+            <input type="text" name="circuitId" id="circuitId" placeholder="Type circuitId" value="{{ request.args.get('circuitId', '') }}">
+        </div>
+        <div>
             <select name="type" id="type" required>
                 <option value="A">winner and podium</option>
                 <option value="B">max speed</option>
             </select>
-        <div>
-            <label for="circuitId">circuit's Id:</label>
-            <input type="text" name="circuitId" id="circuitId" placeholder="Type circuitId" value="{{ request.args.get('circuitId', '') }}">
-        </div>
 
         <div>
             <button type="submit">search</button>
         </div>
-        <label for="note"><br></br>note that there are records of max lap speed after 2003</label>
     </form>
 
     {% if error_message %}
         <p>{{ error_message }}</p>
     {% endif %}
 
-    {% if selected_year %}
-        {% if data[0][6] %}
-            <h2>{{selected_year}} Circuit information: {{selected_circuit}}</h2>
+    {% if selected_type %}
+        <h2>Circuit information of {{data[0][3]}}</h2>
+        {% if data[0][8] %}
             <table style="margin-left: 20px;"> 
                 <th> 
                     <tr style="color: rgb(255, 0, 0); ">    
+                    <td>year</td>  
                     <td>round</td>  
+                    <td>circuitId</td>  
                     <td>circuit_name</td> 
                     <td>location</td> 
                     <td>country</td> 
@@ -90,14 +85,17 @@
                 <td>{{row[6]}}</td> 
                 <td>{{row[7]}}</td> 
                 <td>{{row[8]}}</td> 
+                <td>{{row[9]}}</td> 
+                <td>{{row[10]}}</td> 
             {%endfor%} 
             </table>
         {% else %}
-            <h2>{{selected_year}}Circuit information: {{selected_circuit}}</h2>
             <table style="margin-left: 20px;"> 
                 <th> 
                     <tr style="color: rgb(255, 0, 0); ">
+                    <td>year</td>
                     <td>round</td>
+                    <td>circuitId</td>
                     <td>circuit_name</td>
                     <td>location</td>
                     <td>country</td>
@@ -113,11 +111,13 @@
                 <td>{{row[3]}}</td> 
                 <td>{{row[4]}}</td> 
                 <td>{{row[5]}}</td> 
+                <td>{{row[6]}}</td> 
+                <td>{{row[7]}}</td> 
             {%endfor%} 
             </table>
         {% endif %}
     {% else %}
-        <h2>{{selected_year}}Circuit information: {{ selected_circuit }}</h2>
+        <h2>Circuit information:</h2>
         <table style="margin-left: 20px;"> 
             <th> 
                 <tr style="color: rgb(255, 0, 0); ">     
