@@ -331,12 +331,14 @@ def constructor_analysis_display():
             race_info = cursor.fetchone()
             if race_info:
                 race_data.append((race_info[0], race_info[1], row[1], row[2]))
-            race_data = sorted(race_data, key=lambda x: (x[0], x[1]))
+            race_data = sorted(race_data, key=lambda x: (x[0], x[1]), reverse=True)
         return render_template("constructor_analysis.html", constructor_data=constructor_data, constructor_name=constructor_name, data=race_data)
     else:
-        return render_template("constructor_analysis.html", constructor_data=constructor_data, constructor_name=constructor_name, data=None)
-
-
+        cursor.execute("select constructorId, name from constructors")
+        constructor = cursor.fetchall()
+        return render_template("constructor_analysis.html",  constructor_data=constructor)
+        
+        
 @app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():
     cursor.execute("select circuitId,name,location,country from circuits")
