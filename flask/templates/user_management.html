@@ -30,15 +30,57 @@
                     <td>{{row[1]}}</td>
                     <td>{{row[2]}}</td>
                     <td>{% if row[3] == 1 %} True {% else %} False {% endif %}</td>
-                    <form method='GET' action="{{url_for("user_update")}}">
-                        <td><button name=user_id value={{row[0]}} type="submit" {% if row[0] == 1 %} disabled {% endif %}>Update</button></td>
-                    </form>
-                    <form method='GET' action="{{url_for("user_remove")}}">
-                        <td><button name=user_id value={{row[0]}} type="submit" {% if row[0] == 1 %} disabled {% endif %}>Remove</button></td>
-                    </form>
+                    <td>
+                        <button type="button" onclick="user_update('{{row[0]}}')" {% if row[0] == 1 %} disabled {% endif %}>Update</button>
+                    </td>
+                    <td>
+                        <button type="button" onclick="user_remove('{{row[0]}}')" {% if row[0] == 1 %} disabled {% endif %}>Remove</button>
+                    </td>
                 </tr>
             {%endfor%} 
         </tbody>
     </table>
+    <script>
+        function user_update(user_id) {
+            // Create a form dynamically
+            var form = document.createElement("form");
+            form.method = "GET";
+            form.action = "{{ url_for("user_update") }}";
+
+            // Create and append hidden input for rowId
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "user_id";
+            input.value = user_id;
+            form.appendChild(input);
+
+            // Append the form to the document
+            document.body.appendChild(form);
+
+            // Submit the form
+            form.submit();
+        }
+        function user_remove(user_id) {
+            if (confirm("Are you sure you want to delete this user?")) {                
+                // Create a form dynamically
+                var form = document.createElement("form");
+                form.method = "GET";
+                form.action = "{{ url_for("user_remove") }}";
+
+                // Create and append hidden input for rowId
+                var input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "user_id";
+                input.value = user_id;
+                form.appendChild(input);
+
+                // Append the form to the document
+                document.body.appendChild(form);
+
+                // Submit the form
+                form.submit();
+            }
+        }
+    </script>
 </body>
 </html>
