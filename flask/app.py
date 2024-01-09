@@ -3,8 +3,8 @@ import pymysql
 
 db_connection = {
     "host" : "127.0.0.1",
-    "user" : "root" ,
-    "password" : "" ,
+    "user" : "eric" ,
+    "password" : "123456" ,
     "db" : "f1",
     "charset" : "utf8"
 }
@@ -493,14 +493,23 @@ def race_analysis_display():
 
         
         query_fastest_lap="""
-            select races.name,races.year,races.date,races.time,races.round,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name, fastestLapTime
-            from results,drivers,constructors,races
-            where results.driverId=drivers.driverId 
-                  AND races.year=%s AND races.round = %s
+            WITH TMP as (SELECT races.raceId, MIN(fastestLapTime) as minLapTime
+            FROM results,drivers,constructors,races
+            WHERE results.driverId=drivers.driverId 
+                  AND races.year=%s
+                  AND races.round = %s
                   AND results.constructorId=constructors.constructorId
                   AND results.raceId=races.raceId
-            group by races.raceId
-            having min(fastestLapTime)
+            GROUP BY races.raceId)
+            SELECT races.name,races.year,races.date,races.time,races.round,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name, fastestLapTime
+            FROM results,drivers,constructors,races,TMP
+            WHERE results.driverId=drivers.driverId 
+                  AND races.year=%s
+                  AND races.round = %s
+                  AND results.constructorId=constructors.constructorId
+                  AND results.raceId=races.raceId
+                  AND TMP.raceId = races.raceId
+                  AND results.fastestLapTime = minLapTime
         """
         query_qualifying="""
         SELECT distinct races.name,races.year,races.date, races.time, races.round, CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name
@@ -550,7 +559,7 @@ def race_analysis_display():
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
 
         if(selected_type=='lapper'):
-            cursor.execute(query_fastest_lap,(selected_year, race_round))
+            cursor.execute(query_fastest_lap,(selected_year, race_round, selected_year, race_round))
         elif(selected_type=='qualifying'):
             cursor.execute(query_qualifying,(selected_year, race_round,race_round))
         elif (selected_type=='basic'):
