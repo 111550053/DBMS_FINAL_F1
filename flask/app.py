@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 import pymysql
 
 db_connection = {
@@ -45,9 +45,9 @@ def signup_check():
     if request.method == "POST":
         userName = request.form["username"]
         password = request.form["password"]
-
         cursor.execute("select userName from users")
         result = cursor.fetchall()
+
         if ((userName,) not in result):
             query = "insert into users (userName, passwd, admin) values (%s, %s, false)"
             cursor.execute(query, (userName, password))
@@ -70,7 +70,6 @@ def afterlogin():
             return render_template("afterlogin.html", username=currUserName, admin=isadmin)
         elif ((currUserName, currUserPassword, 0) in result):
             isadmin = False
-            print("admin")
             return render_template("afterlogin.html", username=currUserName, admin=isadmin)
         else:
             currUserName = ""
@@ -112,12 +111,9 @@ def user_update():
 def user_remove():
     remove_user_id = request.args.get('user_id', '')
 
-    cursor.execute("select * from users where userId = %s" % (remove_user_id))
-    user_list = cursor.fetchall()
-
     query = "delete from users where userId = %s"
 
-    if (user_list[0][0] != 1):
+    if (remove_user_id != 1):
         cursor.execute(query, (remove_user_id))
         db.commit()
 
@@ -136,8 +132,10 @@ def edit_table():
     edit_table_name = request.args.get('table', '')
     cursor.execute(f"select * from {edit_table_name} limit 10")
     data = cursor.fetchall()
+
     cursor.execute(f"select count(*) from {edit_table_name}")
     count = cursor.fetchall()[0][0]
+
     return render_template("edit_table.html", tableName=edit_table_name, data=data, count=count, limit=10, currPage=1)
 
 
@@ -151,7 +149,7 @@ def edit_table_display():
     query = f"select * from {edit_table_name} limit {limit} OFFSET {(int(page) - 1) * int(limit)}"
     cursor.execute(query)
     data = cursor.fetchall()
-    print(data)
+
     return render_template("edit_table.html", tableName=edit_table_name, data=data, count=count, limit=limit, currPage=page)
 
 
@@ -194,43 +192,38 @@ columns = {"circuits": "circuitId,circuitRef,name,location,country,lat,lng,alt,u
 def edit_row():
     edit_table_name = request.args.get('tableName1', '')
     key = request.args.get('key', '')
+    limit = request.args.get("limit1", "")
+    currPage = request.args.get("currPage1", "")
 
     query = f"select * from {edit_table_name} where {primaryKeys[edit_table_name]} = {key}"
     cursor.execute(query)
     data = cursor.fetchall()
 
-    return render_template("edit_row.html", data=data, tableName=edit_table_name)
+    return render_template("edit_row.html", data=data, tableName=edit_table_name, limit=limit, currPage=currPage)
 
 
-@app.route("/save_row", methods=["GET", "POST"])
+@app.route("/save_row", methods=["POST"])
 def save_row():
     edit_table_name = request.form.get('tableName')
     values = request.form.getlist('values')
     key = values[0]
+    limit = request.form.get("limit", "")
+    page = request.form.get("currPage", "")
 
-    print(edit_table_name)
-    print(values)
-    print(key)
-    
     cols = columns[edit_table_name].split(',')
-    print(cols)
-    
-    subq = ""
-    for ii in range(1, len(values)):
-        subq += cols[ii] + "='" + values[ii] + "' " # 資料型態也要考慮
-    # 這邊很複雜
-    # 不知道有沒有更好寫法
-    
-    print(subq)
-    
-    query = f"update {edit_table_name} set {subq}where {primaryKeys[edit_table_name]} = {key}"
-    print(query)
-    
-    cursor.execute(query)
+    placeholders = ', '.join([f"{col}=%s" for col in cols[1:] if values[cols.index(col)] != 'None'])
+    filtered_values = [val for val in values[1:] if val != 'None']
+
+    query = f"UPDATE {edit_table_name} SET {placeholders} WHERE {primaryKeys[edit_table_name]} = %s"
+
+    cursor.execute(query, filtered_values + [key])
     db.commit()
-    
-    # still working on redirecting
-    # return redirect(url_for("edit_table_display", limit=limit1, currPage=page1, tableName=edit_table_name, count=count1))
+
+    query = f"select count(*) from {edit_table_name}"
+    cursor.execute(query)
+    count = cursor.fetchall()[0][0]
+
+    return redirect(url_for("edit_table_display", limit=limit, currPage=page, tableName=edit_table_name, count=count))
 
 
 @app.route("/delete_row", methods=["GET", "POST"])
@@ -253,8 +246,7 @@ def delete_row():
 
 @app.route("/driver_analysis", methods=["GET", "POST"])
 def driver_analysis():
-    cursor.execute(
-        "select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+    cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
     driver = cursor.fetchall()
     return render_template("driver_analysis.html",  driver=driver)
 
@@ -307,13 +299,12 @@ def driver_analysis_display():
     """
 
     if(selected_type == 'season'):
-        cursor.execute(season, (halfRound, driver_forename,driver_forename, driver_surname, driver_surname,
-            halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
+        cursor.execute(season, (halfRound, driver_forename, driver_forename, driver_surname, driver_surname,
+                                halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
     elif(selected_type == 'race'):
         cursor.execute(race, (driver_forename, driver_forename, driver_surname, driver_surname))
     else:
-        cursor.execute(
-            "select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+        cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
     driver = cursor.fetchall()
 
     return render_template("driver_analysis.html",  driver=driver, selected_year=selected_year, selected_type=selected_type)
@@ -465,17 +456,14 @@ def circuit_analysis_display():
 
         if(selected_type == 'B'):
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
-                cursor.execute(
-                    maxLapSpeed, ('-1', '', '-1', ''))
+                cursor.execute(maxLapSpeed, ('-1', '', '-1', ''))
             else:
                 cursor.execute(maxLapSpeed, (circuitId, circuitId, circuitId, circuitId))
         else:
             if(circuitId == '' or circuitId == '0' or circuitId[0] == '-'):
-                cursor.execute(winTeamAndPodium, ('-1', '',
-                               '-1', '', '-1', '', '-1', ''))
+                cursor.execute(winTeamAndPodium, ('-1', '', '-1', '', '-1', '', '-1', ''))
             else:
-                cursor.execute(winTeamAndPodium, (circuitId, circuitId, circuitId,
-                               circuitId, circuitId, circuitId, circuitId, circuitId))
+                cursor.execute(winTeamAndPodium, (circuitId, circuitId, circuitId, circuitId, circuitId, circuitId, circuitId, circuitId))
 
         data = cursor.fetchall()
 
@@ -483,7 +471,7 @@ def circuit_analysis_display():
             error_message = f"No data found with the circuit '{circuitId}'.\n Please search the name again!"
             return render_template('circuit_analysis.html', error_message=error_message)
 
-        return render_template('circuit_analysis.html',selected_type = selected_type, data=data)
+        return render_template('circuit_analysis.html', selected_type=selected_type, data=data)
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -525,12 +513,11 @@ def race_analysis_display():
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
 
         if (race_round != '0' and race_round[0] != '-'):
-            cursor.execute(query_check_round,
-                           (selected_year, race_round, race_round))
+            cursor.execute(query_check_round, (selected_year, race_round, race_round))
         else:
             cursor.execute(query_check_round, (selected_year, race_round, ''))
+        
         round_count = cursor.fetchone()[0]
-
         if round_count == 0:
             error_message = f"No races found for round {race_round} in the year {selected_year}."
             return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
@@ -544,11 +531,9 @@ def race_analysis_display():
                                f'%{driver_forename}%', driver_forename, f'%{driver_surname}%', driver_surname))
             else:
                 if race_round == '0' or race_round[0] == '-':
-                    cursor.execute(
-                        query, (selected_year, '-1', '', '%', '', '%', ''))
+                    cursor.execute(query, (selected_year, '-1', '', '%', '', '%', ''))
                 else:
-                    cursor.execute(
-                        query, (selected_year, race_round, race_round, '%', '', '%', ''))
+                    cursor.execute(query, (selected_year, race_round, race_round, '%', '', '%', ''))
 
         data = cursor.fetchall()
 

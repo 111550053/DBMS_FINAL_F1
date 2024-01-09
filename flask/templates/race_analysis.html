@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis</title>
+    <title>Race Analysis</title>
     <link href="static/default.css" rel="stylesheet" type="text/css" />
     <style>
         table {
@@ -16,7 +16,6 @@
             text-align: left;
             padding: 8px;
         }
-
         th {
             background-color: #000000;
         }
@@ -31,10 +30,6 @@
     </style>
 </head>
 <body>
-
-
-    
-
     <h1>Race Analysis</h1>
     <form method="get" action="{{ url_for('race_analysis_display') }}">
         <div>
@@ -44,34 +39,23 @@
                     <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
             </select>
-            
         </div>
-            <label for="round">Round:</label>
-            <input type="number" name="round" id="round" placeholder="Enter race round" required value="{{ request.args.get('round', '') }}">
-        <div>
-            
-        </div>
-
+        <label for="round">Round:</label>
+        <input type="number" name="round" id="round" placeholder="Enter race round" required value="{{ request.args.get('round', '') }}">
         <div>
             <h2> Additional search </h2>
         </div>
-
         <div>
             <label for="driver_forename">Driver's Forename:</label>
             <input type="text" name="driver_forename" id="driver_forename" placeholder="Type driver's forename" value="{{ request.args.get('driver_forename', '') }}">
         </div>
-
         <div>
             <label for="driver_surname">Driver's Surname:</label>
             <input type="text" name="driver_surname" id="driver_surname" placeholder="Type driver's surname" value="{{ request.args.get('driver_surname', '') }}">
         </div>
-    
-        
-      
         <div>
             <button type="submit">search</button>
         </div>
-        
     </form>
 
     {% if error_message %}

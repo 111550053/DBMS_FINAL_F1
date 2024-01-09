@@ -14,7 +14,9 @@
             <h1>資料管理</h1>
         </div>
         <label>Table name: {{ tableName }}</label><br>
+        <input type="hidden" name=tableName value={{ tableName }}>
         <label>Number of total rows: {{ count }}</label><br>
+        <input type="hidden" name=count value={{ count }}>
         <label>Select Page Limit:</label>
         <select name="limit" id="limit" required>
             <option value="10" {%if limit == "10"%} selected {%endif%}>10</option>
@@ -42,7 +44,7 @@
                             <td>{{ col }}</td>
                         {% endfor %}
                         <td>
-                            <button type="button" onclick="editRow('{{ row[0] }}', '{{ tableName }}')">Edit</button>
+                            <button type="button" onclick="editRow('{{ row[0] }}', '{{ limit }}', '{{ currPage }}', '{{ tableName }}')">Edit</button>
                         </td>
                         <td>
                             <button type="button" onclick="deleteRow('{{ row[0] }}', '{{ limit }}', '{{ currPage }}', '{{ tableName }}')">Delete</button>
@@ -51,10 +53,9 @@
                 {% endfor %}
             </tbody>
         </table>
-        
     </form>
     <script>
-        function editRow(rowId, tableName) {
+        function editRow(rowId, limit, currPage, tableName) {
             // Placeholder logic for editing row
             // You can use JavaScript to manipulate the DOM or make an AJAX request
             console.log("Edit row with ID: " + rowId);
@@ -75,6 +76,18 @@
             input.type = "hidden";
             input.name = "tableName1";
             input.value = tableName;
+            form.appendChild(input);
+
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "limit1";
+            input.value = limit;
+            form.appendChild(input);
+
+            var input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "currPage1";
+            input.value = currPage;
             form.appendChild(input);
 
             // Append the form to the document
