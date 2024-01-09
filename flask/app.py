@@ -270,51 +270,47 @@ def driver_analysis_display():
     halfRound = cursor.fetchall()
 
     race = """
-        select driverId,CONCAT(forename, ' ', surname) as name from drivers
+        SELECT races.year, drivers.name, constructors.name, AVG(results.position), MAX(fastestLapSpeed) 
+        FROM (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename = %s OR %s = '') AND (surname = %s OR %s = '')) as drivers, (SELECT constructorId, name FROM constructors) as constructors
+        , (SELECT raceId, year FROM races) as races, (SELECT raceId, driverId, constructorId, fastestLapSpeed, position FROM results) as results
+        WHERE races.raceId = results.raceId
+        AND drivers.driverId = results.driverId
+        AND constructors.constructorId = results.constructorId
+        GROUP BY races.year, drivers.driverId, constructors.constructorId
+        ORDER BY races.year DESC, drivers.name
     """
 
-    whole = """
-    SELECT drivers.name, SUM(results.points) as totalPoints
+    season = """ WITH first as( 
+    SELECT races.year, drivers.driverId, drivers.name, SUM(results.points) as totalPoints
     FROM (SELECT raceId, driverId, points FROM results) as results
-    , (SELECT raceId FROM races WHERE year = %s) as races
+    , (SELECT year, raceId FROM races WHERE round < %s) as races
     , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
     WHERE drivers.driverId = results.driverId
     AND races.raceId = results.raceId
-    GROUP BY drivers.driverId
-    ORDER BY totalPoints DESC
-    """
-    first = """
-    SELECT drivers.name, SUM(results.points) as totalPoints
+    GROUP BY races.year, drivers.driverId
+    ORDER BY year DESC, totalPoints DESC),
+
+    last as (SELECT races.year, drivers.driverId, drivers.name, SUM(results.points) as totalPoints
     FROM (SELECT raceId, driverId, points FROM results) as results
-    , (SELECT raceId FROM races WHERE year = %s AND round <=  %s) as races
+    , (SELECT year, raceId FROM races WHERE round >= %s) as races
     , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
     WHERE drivers.driverId = results.driverId
     AND races.raceId = results.raceId
-    GROUP BY drivers.driverId
-    ORDER BY totalPoints DESC
-    """
-    last = """
-    SELECT drivers.name, SUM(results.points) as totalPoints
-    FROM (SELECT raceId, driverId, points FROM results) as results
-    , (SELECT raceId FROM races WHERE year = %s AND round > %s) as races
-    , (SELECT driverId, CONCAT(forename, ' ', surname) as name FROM drivers WHERE (forename LIKE %s OR %s = '') AND (surname LIKE %s OR %s = '')) as drivers
-    WHERE drivers.driverId = results.driverId
-    AND races.raceId = results.raceId
-    GROUP BY drivers.driverId
-    ORDER BY totalPoints DESC
+    GROUP BY races.year, drivers.driverId
+    ORDER BY year DESC, totalPoints DESC)
+
+    SELECT first.year, first.name, first.totalPoints + last.totalPoints as wholePoints, first.totalPoints, last.totalPoints
+    FROM first, last
+    WHERE first.driverId = last.driverId
+    AND first.year = last.year
+    ORDER BY first.year DESC, wholePoints DESC, first.totalPoints DESC, last.totalPoints DESC
     """
 
-    if(selected_type == 'whole'):
-        cursor.execute(whole, (selected_year, driver_forename,
-                       driver_forename, driver_surname, driver_surname))
-    elif(selected_type == 'first'):
-        cursor.execute(first, (selected_year, halfRound, driver_forename,
-                       driver_forename, driver_surname, driver_surname))
-    elif(selected_type == 'last'):
-        cursor.execute(last, (selected_year, halfRound, driver_forename,
-                       driver_forename, driver_surname, driver_surname))
+    if(selected_type == 'season'):
+        cursor.execute(season, (halfRound, driver_forename,driver_forename, driver_surname, driver_surname,
+            halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
     elif(selected_type == 'race'):
-        cursor.execute(race, )
+        cursor.execute(race, (driver_forename, driver_forename, driver_surname, driver_surname))
     else:
         cursor.execute(
             "select driverId,CONCAT(forename, ' ', surname) as name from drivers")

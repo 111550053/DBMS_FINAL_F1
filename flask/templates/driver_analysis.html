@@ -36,17 +36,9 @@
     </div>
     <form method="get" action="{{ url_for('driver_analysis_display') }}">
         <div>
-            <label for="year">Select Year:</label>
-            <select name="year" id="year" required>
-                {% for year in range(2009, 1900, -1) %}
-                    <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-            </select>
             <select name="type" id="type" required>
                 <option value="race">單場分析</option>
-                <option value="whole">整季分析</option>
-                <option value="first">前半季分析</option>
-                <option value="last">後半季分析</option>
+                <option value="season">逐季分析</option>
             </select>
         </div>
         <br></br>
@@ -78,10 +70,10 @@
         <table style="margin-left: 20px;"> 
             <th> 
                 <tr style="color: rgb(255, 0, 0); ">     
+                <td>year</td>  
                 <td>name</td> 
                 <td>constructor</td>
-                <td>position</td>
-                <td>time(s)</td>
+                <td>AVG position</td>
                 <td>fastest lap speed</td>
         </tr> 
             </th> 
@@ -93,19 +85,25 @@
             <td>{{row[3]}}</td> 
             <td>{{row[4]}}</td> 
         {%endfor%} 
-    {% elif selected_type == "whole" or selected_type == "first" or selected_type == "last"%}
+    {% elif selected_type == "season"%}
         <h2>driver: </h2>
         <table style="margin-left: 20px;"> 
             <th> 
-                <tr style="color: rgb(255, 0, 0); ">     
+                <tr style="color: rgb(255, 0, 0); ">
+                <td>year</td>
                 <td>name</td> 
-                <td>points</td>
+                <td>points of whole year</td>
+                <td>points of first half year</td>
+                <td>points of last half year</td>
         </tr> 
             </th> 
         {%for row in driver%} 
         <tr> 
             <td>{{row[0]}}</td> 
             <td>{{row[1]}}</td> 
+            <td>{{row[2]}}</td> 
+            <td>{{row[3]}}</td> 
+            <td>{{row[4]}}</td> 
         {%endfor%} 
     {% else %}  
         <h2>driver: </h2>
