@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #000000;
+        }
+        option{
+            color : #ff0000;
+            background-color: #000000;
+        }
+        select{
+            color : #ff0000;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lap Rank Analysis</h1>
+    <form method="get" action="{{ url_for('rank_display') }}">
+        <div>
+            <label for="year">Select Year:</label>
+            <select name="year" id="year" required>
+                {% for year in range(2023, 1900, -1) %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="round">Round:</label>
+            <input type="number" name="round" id="round" placeholder="Enter race round" required value="{{ request.args.get('round', '') }}">
+        </div>
+        <div>
+            <label for="lap_number">Select Lap Number:</label>
+            <input type="number" name="lap_number" id="lap_number" placeholder="Enter lap number" required value="{{ request.args.get('lap_number', '') }}">
+        </div>
+        <div>
+            <button type="submit">Search</button>
+        </div>
+
+        
+        
+    </form>
+
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+
+    {% if data %}
+            <h2>The rank for lap {{lap_number}} in {{ selected_year }} round {{ race_round }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>race name</th>
+                        <th>year</th>
+                        <th>date</th>
+                        <th>time</th>
+                        <th>round</th>
+                        <th>driver's name</th>
+                        <th>position</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                            <td>{{ row[5] }}</td>
+                            <td>{{ row[6] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+    {% else %}
+        <p>There is no race in {{selected_year}} round {{race_round}}.</p>
+    {% endif %}
+    
+</body>
+</html>

@@ -31,46 +31,36 @@
     </style>
 </head>
 <body>
-
-
-    
-
     <h1>Race Analysis</h1>
     <form method="get" action="{{ url_for('race_analysis_display') }}">
         <div>
             <label for="year">Select Year:</label>
             <select name="year" id="year" required>
-                {% for year in range(2009, 1900, -1) %}
+                {% for year in range(2023, 1900, -1) %}
                     <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
             </select>
-            
+            <select name="type" id="type" required>
+                <option value="lapper">Fastest Lap</option>
+                <option value="qualifying">Qualifying</option>
+                <option value="basic">Basic data</option>
+            </select>
+                
+      
+
+
         </div>
             <label for="round">Round:</label>
             <input type="number" name="round" id="round" placeholder="Enter race round" required value="{{ request.args.get('round', '') }}">
         <div>
-            
-        </div>
-
-        <div>
-            <h2> Additional search </h2>
-        </div>
-
-        <div>
-            <label for="driver_forename">Driver's Forename:</label>
-            <input type="text" name="driver_forename" id="driver_forename" placeholder="Type driver's forename" value="{{ request.args.get('driver_forename', '') }}">
-        </div>
-
-        <div>
-            <label for="driver_surname">Driver's Surname:</label>
-            <input type="text" name="driver_surname" id="driver_surname" placeholder="Type driver's surname" value="{{ request.args.get('driver_surname', '') }}">
-        </div>
-    
-        
-      
-        <div>
             <button type="submit">search</button>
+            <h2>additional analysis</h2>
+            <div>
+                <a href="{{ url_for('rank') }}"><button type="button">Rank</button></a>
+            </div>
         </div>
+
+        
         
     </form>
 
@@ -79,31 +69,102 @@
     {% endif %}
 
     {% if data %}
-        <h2>Race for Year {{ selected_year }}</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>date</th>
-                    <th>time</th>
-                    <th>round</th>
-                    <th>driver's forename</th>
-                    <th>driver's surname</th>
-                    <th>constructor's name</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
+        {% if selected_type=='lapper' %}
+            <h2>The fastest lap time for each race in {{ selected_year }} round {{ race_round }}</h2>
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>{{ row[2] }}</td>
-                        <td>{{ row[3] }}</td>
-                        <td>{{ row[4] }}</td>
-                        <td>{{ row[5] }}</td>
+                        <th>race name</th>
+                        <th>year</th>
+                        <th>date</th>
+                        <th>time</th>
+                        <th>round</th>
+                        <th>driver's name</th>
+                        <th>constructor's name</th>
+                        <th>fastest lap time</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                            <td>{{ row[5] }}</td>
+                            <td>{{ row[6] }}</td>
+                            <td>{{ row[7] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {%endif%}
+        {% if selected_type=='qualifying' %}
+            <h2>The qualifying in {{ selected_year }} round {{ race_round }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>qualifying name</th>
+                        <th>year</th>
+                        <th>date</th>
+                        <th>time</th>
+                        <th>round</th>
+                        <th>driver's name</th>
+                        <th>constructor's name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                            <td>{{ row[5] }}</td>
+                            <td>{{ row[6] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {%endif%}
+        {% if selected_type=='basic' %}
+            <h2>The basic race data in {{ selected_year }} round {{ race_round }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>race name</th>
+                        <th>year</th>
+                        <th>date</th>
+                        <th>time</th>
+                        <th>round</th>
+                        <th>driver's name</th>
+                        <th>constructor's name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] }}</td>
+                            <td>{{ row[5] }}</td>
+                            <td>{{ row[6] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {%endif%}
+            
+        
+
+    {% else %}
+        <p>There is no race in {{selected_year}} round {{race_round}}.</p>
     {% endif %}
+    
 </body>
 </html>
