@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Analysis</title>
+    <title>Race Analysis</title>
     <link href="static/default.css" rel="stylesheet" type="text/css" />
     <style>
         table {
@@ -16,7 +16,6 @@
             text-align: left;
             padding: 8px;
         }
-
         th {
             background-color: #000000;
         }
@@ -45,10 +44,6 @@
                 <option value="qualifying">Qualifying</option>
                 <option value="basic">Basic data</option>
             </select>
-                
-      
-
-
         </div>
             <label for="round">Round:</label>
             <input type="number" name="round" id="round" placeholder="Enter race round" required value="{{ request.args.get('round', '') }}">
@@ -59,9 +54,6 @@
                 <a href="{{ url_for('rank') }}"><button type="button">Rank</button></a>
             </div>
         </div>
-
-        
-        
     </form>
 
     {% if error_message %}

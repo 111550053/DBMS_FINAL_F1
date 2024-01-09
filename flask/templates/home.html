@@ -25,9 +25,18 @@
         <button onclick="invalid()">車手、車隊、賽車管理</button>
         <button onclick="invalid()">資料管理</button>
         <button onclick="invalid()">使用者管理</button>
-        <button>單場比賽分析</button>
-        <button>車手車隊分析</button>
-        <button>賽道分析</button>
+        <form method="get" action="/race_analysis">
+            <button type="submit">單場比賽分析</button>
+        </form>
+        <form method="post" action="/driver_analysis">
+            <button type="submit">車手分析</button>
+        </form>
+        <form method="post" action="/constructor_analysis">
+            <button type="submit">車隊分析</button>
+        </form>
+        <form method="post" action="/circuit_analysis">
+            <button type="submit">賽道分析</button>
+        </form>
         <button onclick="invalid()">創建車手、車隊、賽車</button>
     </div>
     <script>
@@ -43,10 +52,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
