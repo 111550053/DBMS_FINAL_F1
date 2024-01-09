@@ -313,7 +313,7 @@ def driver_analysis_display():
 def constructor_analysis():
     cursor.execute("select constructorId, name from constructors")
     constructor = cursor.fetchall()
-    return render_template("constructor_analysis.html",  constructor=constructor)
+    return render_template("constructor_analysis.html",  constructor_data=constructor)
 
 @app.route("/constructor_analysis_display", methods=["GET", "POST"])
 def constructor_analysis_display():
@@ -331,9 +331,10 @@ def constructor_analysis_display():
             race_info = cursor.fetchone()
             if race_info:
                 race_data.append((race_info[0], race_info[1], row[1], row[2]))
-        return render_template("constructor_analysis.html", constructor_name=constructor_name, data=race_data)
+            race_data = sorted(race_data, key=lambda x: (x[0], x[1]))
+        return render_template("constructor_analysis.html", constructor_data=constructor_data, constructor_name=constructor_name, data=race_data)
     else:
-        return render_template("constructor_analysis.html", constructor_name=constructor_name, data=None)
+        return render_template("constructor_analysis.html", constructor_data=constructor_data, constructor_name=constructor_name, data=None)
 
 
 @app.route("/circuit_analysis", methods=["GET", "POST"])
