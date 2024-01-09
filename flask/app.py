@@ -309,6 +309,32 @@ def driver_analysis_display():
 
     return render_template("driver_analysis.html",  driver=driver, selected_year=selected_year, selected_type=selected_type)
 
+@app.route("/constructor_analysis", methods=["GET", "POST"])
+def constructor_analysis():
+    cursor.execute("select constructorId, name from constructors")
+    constructor = cursor.fetchall()
+    return render_template("constructor_analysis.html",  constructor=constructor)
+
+@app.route("/constructor_analysis_display", methods=["GET", "POST"])
+def constructor_analysis_display():
+    constructor_name = request.args.get('constructor_name', '')
+    cursor.execute("SELECT constructorId FROM constructors WHERE name = %s", (constructor_name,))
+    constructor_data = cursor.fetchone()
+
+    if constructor_data:
+        constructor_id = constructor_data[0]
+        cursor.execute("SELECT raceId, points, position FROM constructor_standings WHERE constructorId = %s", (constructor_id,))
+        constructor_standing_data = cursor.fetchall()
+        race_data = []
+        for row in constructor_standing_data:
+            cursor.execute("SELECT year, round FROM races WHERE raceId = %s", (row[0],))
+            race_info = cursor.fetchone()
+            if race_info:
+                race_data.append((race_info[0], race_info[1], row[1], row[2]))
+        return render_template("constructor_analysis.html", constructor_name=constructor_name, data=race_data)
+    else:
+        return render_template("constructor_analysis.html", constructor_name=constructor_name, data=None)
+
 
 @app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():
