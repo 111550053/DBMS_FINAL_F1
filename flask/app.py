@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import pymysql
 
 db_connection = {
     "host": "127.0.0.1",
-    "user": "eric",
-    "password": "123456",
+    "user": "root",
+    "password": "",
     "db": "f1",
     "charset": "utf8"
 }
@@ -17,7 +17,6 @@ app = Flask(__name__)
 # some variabls
 currUserName = ""
 currUserPassword = ""
-login = False
 isadmin = False
 
 
@@ -67,18 +66,15 @@ def afterlogin():
         result = cursor.fetchall()
 
         if ((currUserName, currUserPassword, 1) in result):
-            login = True
             isadmin = True
             return render_template("afterlogin.html", username=currUserName, admin=isadmin)
         elif ((currUserName, currUserPassword, 0) in result):
-            login = True
             isadmin = False
             print("admin")
             return render_template("afterlogin.html", username=currUserName, admin=isadmin)
         else:
             currUserName = ""
             currUserPassword = ""
-            login = False
             isadmin = False
             return render_template("login.html", errormessage="invalid user name or password!")
 
@@ -112,7 +108,7 @@ def user_update():
     return redirect(url_for("user_management"))
 
 
-@app.route("/user_remove")
+@app.route("/user_remove", methods=["GET", "POST"])
 def user_remove():
     remove_user_id = request.args.get('user_id', '')
 
@@ -127,18 +123,148 @@ def user_remove():
 
     return redirect(url_for("user_management"))
 
-@app.route("/driver_analysis", methods = ["GET", "POST"])
-def driver_analysis():
-    cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
-    driver = cursor.fetchall()
-    return render_template("driver_analysis.html",  driver = driver)
 
-@app.route("/driver_analysis_display", methods = ["GET", "POST"])
+@app.route("/data_management", methods=["GET", "POST"])
+def data_management():
+    cursor.execute("show tables")
+    tables = cursor.fetchall()
+    return render_template("data_management.html", data=tables)
+
+
+@app.route("/edit_table", methods=["GET", "POST"])
+def edit_table():
+    edit_table_name = request.args.get('table', '')
+    cursor.execute(f"select * from {edit_table_name} limit 10")
+    data = cursor.fetchall()
+    cursor.execute(f"select count(*) from {edit_table_name}")
+    count = cursor.fetchall()[0][0]
+    return render_template("edit_table.html", tableName=edit_table_name, data=data, count=count, limit=10, currPage=1)
+
+
+@app.route("/edit_table_display", methods=["GET", "POST"])
+def edit_table_display():
+    edit_table_name = request.args.get('tableName', '')
+    limit = request.args.get('limit', '')
+    count = request.args.get('count', '')
+    page = request.args.get('currPage', '')
+
+    query = f"select * from {edit_table_name} limit {limit} OFFSET {(int(page) - 1) * int(limit)}"
+    cursor.execute(query)
+    data = cursor.fetchall()
+    print(data)
+    return render_template("edit_table.html", tableName=edit_table_name, data=data, count=count, limit=limit, currPage=page)
+
+
+primaryKeys = {"circuits": "circuitId",
+               "constructors": "constructorId",
+               "drivers": "driverId",
+               "races": "raceId",
+               "constructor_results": "constructorResultsId",
+               "constructor_standings": "constructorStandingsId",
+               "driver_standings": "driverStandingsId",
+               "lap_times": ("raceId", "driverId", "lap"),
+               "pit_stops": ("raceId", "driverId", "stop"),
+               "qualifying": "qualifyId",
+               "results": "resultId",
+               "seasons": "year",
+               "sprint_results": "resultId",
+               "status": "Id",
+               "users": "userId",
+               "custom_content": "customDataId"}
+
+columns = {"circuits": "circuitId,circuitRef,name,location,country,lat,lng,alt,url",
+           "constructors": "constructorId,constructorRef,name,nationality,url",
+           "drivers": "driverId,driverRef,number,code,forename,surname,dob,nationality,url",
+           "races": "raceId,year,round,circuitId,name,date,time,url,fp1_date,fp1_time,fp2_date,fp2_time,fp3_date,fp3_time,quali_date,quali_time,sprint_date,sprint_time",
+           "constructor_results": "constructorResultsId,raceId,constructorId,points,status",
+           "constructor_standings": "constructorStandingsId,raceId,constructorId,points,position,positionText,wins",
+           "driver_standings": "driverStandingsId,raceId,driverId,points,position,positionText,wins",
+           "lap_times": "raceId,driverId,lap,position,time,milliseconds",
+           "pit_stops": "raceId,driverId,stop,lap,time,duration,milliseconds",
+           "qualifying": "qualifyId,raceId,driverId,constructorId,number,position,q1,q2,q3",
+           "results": "resultId,raceId,driverId,constructorId,number,grid,position,positionText,positionOrder,points,laps,time,milliseconds,fastestLap,rank,fastestLapTime,fastestLapSpeed,statusId",
+           "seasons": "year,url",
+           "sprint_results": "resultId,raceId,driverId,constructorId,number,grid,position,positionText,positionOrder,points,laps,time,milliseconds,fastestLap,fastestLapTime,statusId",
+           "status": "Id,status",
+           "users": "userId,userName,passwd,admin",
+           "custom_content": "customDataId,userId,customType,customcontentId"}
+
+
+@app.route("/edit_row", methods=["GET", "POST"])
+def edit_row():
+    edit_table_name = request.args.get('tableName1', '')
+    key = request.args.get('key', '')
+
+    query = f"select * from {edit_table_name} where {primaryKeys[edit_table_name]} = {key}"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    return render_template("edit_row.html", data=data, tableName=edit_table_name)
+
+
+@app.route("/save_row", methods=["GET", "POST"])
+def save_row():
+    edit_table_name = request.form.get('tableName')
+    values = request.form.getlist('values')
+    key = values[0]
+
+    print(edit_table_name)
+    print(values)
+    print(key)
+    
+    cols = columns[edit_table_name].split(',')
+    print(cols)
+    
+    subq = ""
+    for ii in range(1, len(values)):
+        subq += cols[ii] + "='" + values[ii] + "' " # 資料型態也要考慮
+    # 這邊很複雜
+    # 不知道有沒有更好寫法
+    
+    print(subq)
+    
+    query = f"update {edit_table_name} set {subq}where {primaryKeys[edit_table_name]} = {key}"
+    print(query)
+    
+    cursor.execute(query)
+    db.commit()
+    
+    # still working on redirecting
+    # return redirect(url_for("edit_table_display", limit=limit1, currPage=page1, tableName=edit_table_name, count=count1))
+
+
+@app.route("/delete_row", methods=["GET", "POST"])
+def delete_row():
+    edit_table_name = request.args.get('tableName1', '')
+    key = request.args.get('key', '')
+    limit1 = request.args.get('limit1', '')
+    page1 = request.args.get('currPage1', '')
+
+    query = f"delete from {edit_table_name} where {primaryKeys[edit_table_name]} = {key}"
+    cursor.execute(query)
+    db.commit()
+
+    query = f"select count(*) from {edit_table_name}"
+    cursor.execute(query)
+    count1 = cursor.fetchall()[0][0]
+
+    return redirect(url_for("edit_table_display", limit=limit1, currPage=page1, tableName=edit_table_name, count=count1))
+
+
+@app.route("/driver_analysis", methods=["GET", "POST"])
+def driver_analysis():
+    cursor.execute(
+        "select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+    driver = cursor.fetchall()
+    return render_template("driver_analysis.html",  driver=driver)
+
+
+@app.route("/driver_analysis_display", methods=["GET", "POST"])
 def driver_analysis_display():
-    selected_year=request.args.get('year','')
-    selected_type=request.args.get('type','')
-    driver_surname=request.args.get('driver_surname','')
-    driver_forename=request.args.get('driver_forename','')
+    selected_year = request.args.get('year', '')
+    selected_type = request.args.get('type', '')
+    driver_surname = request.args.get('driver_surname', '')
+    driver_forename = request.args.get('driver_forename', '')
 
     cursor.execute("SELECT MAX(round)/2 FROM races")
     halfRound = cursor.fetchall()
@@ -179,18 +305,23 @@ def driver_analysis_display():
     """
 
     if(selected_type == 'whole'):
-        cursor.execute(whole, (selected_year, driver_forename, driver_forename, driver_surname, driver_surname))
+        cursor.execute(whole, (selected_year, driver_forename,
+                       driver_forename, driver_surname, driver_surname))
     elif(selected_type == 'first'):
-        cursor.execute(first, (selected_year, halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
+        cursor.execute(first, (selected_year, halfRound, driver_forename,
+                       driver_forename, driver_surname, driver_surname))
     elif(selected_type == 'last'):
-        cursor.execute(last, (selected_year, halfRound, driver_forename, driver_forename, driver_surname, driver_surname))
+        cursor.execute(last, (selected_year, halfRound, driver_forename,
+                       driver_forename, driver_surname, driver_surname))
     elif(selected_type == 'race'):
         cursor.execute(race, )
-    else :
-        cursor.execute("select driverId,CONCAT(forename, ' ', surname) as name from drivers")
+    else:
+        cursor.execute(
+            "select driverId,CONCAT(forename, ' ', surname) as name from drivers")
     driver = cursor.fetchall()
 
-    return render_template("driver_analysis.html",  driver = driver, selected_year = selected_year, selected_type = selected_type)
+    return render_template("driver_analysis.html",  driver=driver, selected_year=selected_year, selected_type=selected_type)
+
 
 @app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():
