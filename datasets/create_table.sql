@@ -207,7 +207,7 @@ create table sprint_results
 
 create table status
 (
-    Id smallint not null,
+    statusId smallint not null,
     status varchar(100) not null,
     primary key (Id)
 );
