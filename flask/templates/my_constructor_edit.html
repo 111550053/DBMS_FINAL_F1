@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Constructor Edit</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+    </style>
+</head>
+<body>
+    <form id="editForm" method='get' action="{{ url_for("my_constructor_update") }}">
+        <div id="header">
+            <h1>編輯我的車隊</h1>
+        </div>
+        <table class="user-table">
+            <tbody>
+                <tr>
+                    <th>column</th>
+                    <th>value</th>
+                </tr>
+                <tr>
+                    <td>constructorId</td>
+                    <td><input name="constructorId" value="{{ data[0] }}"></td>
+                </tr>
+                <tr>
+                    <td>constructorRef</td>
+                    <td><input name="constructorRef" value="{{ data[1] }}"></td>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td><input name="name" value="{{ data[2] }}"></td>
+                </tr>
+                <tr>
+                    <td>nationality</td>
+                    <td><input name="nationality" value="{{ data[3] }}"></td>
+                </tr>
+                <tr>
+                    <td>url</td>
+                    <td><input name="url" value="{{ data[4] }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" name="userId" value="{{ userId }}">
+        <button type="submit">Save</button>
+    </form>
+    <script>
+        function saveRow() {
+            document.getElementById("editForm").submit();
+        }
+    </script>
+</body>
+</html>
