@@ -524,13 +524,13 @@ def constructor_analysis_display():
             race_info = cursor.fetchone()
             if race_info:
                 race_data.append((race_info[0], race_info[1], row[1], row[2]))
+
             race_data = sorted(race_data, key=lambda x: (x[0], x[1]), reverse=True)
         return render_template("constructor_analysis.html", constructor_data=constructor_data, constructor_name=constructor_name, data=race_data)
     else:
         cursor.execute("select constructorId, name from constructors")
         constructor = cursor.fetchall()
         return render_template("constructor_analysis.html",  constructor_data=constructor)
-        
         
 @app.route("/circuit_analysis", methods=["GET", "POST"])
 def circuit_analysis():
@@ -681,12 +681,8 @@ def race_analysis():
 
 @app.route("/race_analysis_display", methods = ["GET",'POST'])
 def race_analysis_display():
-    selected_year=request.args.get('year','')
-    race_round=request.args.get('round','')
-    selected_type=request.args.get('type','')
+    
     try:
-
-        
         query_fastest_lap="""
             WITH TMP as (SELECT races.raceId, MIN(fastestLapTime) as minLapTime
             FROM results,drivers,constructors,races
@@ -707,63 +703,90 @@ def race_analysis_display():
                   AND results.fastestLapTime = minLapTime
         """
         query_qualifying="""
-        SELECT distinct races.name,races.year,races.date, races.time, races.round, CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name
+        SELECT distinct races.name,races.date, races.time,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, 
+               constructors.name,results.position,results.points,results.time,results.fastestLap,results.fastestLapTime,status.status
         FROM (SELECT name,year,raceId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
         , (SELECT name, constructorId FROM constructors) as constructors
-        , (SELECT raceId,driverId,constructorId FROM results) as results
+        , (SELECT raceId,driverId,constructorId,position,points,time,fastestLap,fastestLapTime,statusId FROM results) as results
         , (SELECT driverId, forename, surname FROM drivers) as drivers
         , qualifying
+        ,status
         WHERE results.raceId = races.raceId
               AND results.driverId = drivers.driverId
               AND results.constructorId = constructors.constructorId
               AND races.raceId=qualifying.raceId
+              AND status.statusId=results.statusId
         """
 
         query_basic_data = """
-        SELECT races.name,races.year,races.date, races.time, races.round, CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name
+        SELECT races.name,races.date, races.time,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, 
+               constructors.name,results.position,results.points,results.time,results.fastestLap,results.fastestLapTime,status.status
         FROM (SELECT name,year,raceId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
         , (SELECT name, constructorId FROM constructors) as constructors
-        , (SELECT raceId,driverId,constructorId FROM results) as results
+        , (SELECT raceId,driverId,constructorId,position,points,time,fastestLap,fastestLapTime,statusId FROM results) as results
         , (SELECT driverId, forename, surname FROM drivers) as drivers
+        , status
         WHERE results.raceId = races.raceId
               AND results.driverId = drivers.driverId
               AND results.constructorId = constructors.constructorId
+              AND status.statusId=results.statusId
+        """
+        #max_lap=6
+        query_pit_stops="""
+        select CONCAT(drivers.forename, ' ', drivers.surname) as driver_name,temp.lap,temp.duration 
+        from((select races.raceId,races.name,pit_stops.driverId,pit_stops.lap,pit_stops.duration
+            from (select raceId, name from races where year=%s and (round = %s OR %s = '')) as races
+            ,(select raceId,driverId,lap,duration from pit_stops) as pit_stops
+            where races.raceId=pit_stops.raceId)) as temp,drivers
+        where temp.driverId=drivers.driverId
+
         """
 
-        
 
-        query_check_year="SELECT COUNT(*) FROM races WHERE year = %s"
-        query_check_round = "SELECT COUNT(*) FROM races WHERE year = %s AND (round = %s OR %s = '')"
+        selected_year=request.args.get('year','')
+        race_round=request.args.get('round','')
+        selected_type=request.args.get('type','')
 
+        query_check="""
+            select count(*)
+            from races 
+            where year=%s and round=%s
+        """
 
-        cursor.execute(query_check_year, (selected_year))
-        year_count = cursor.fetchone()[0]
+        if(race_round[0]=='-' or race_round=='0'):
+            error_message=f"Please enter the positive round"
+            return render_template('race_analysis.html',error_message=error_message)
 
-        if year_count == 0:
-            error_message = f"No races found for the year {selected_year}."
-            return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
+        cursor.execute(query_check,(selected_year,race_round))
+        correctness=cursor.fetchone()[0]
 
-        if (race_round != '0' and race_round[0] != '-'):
-            cursor.execute(query_check_round, (selected_year, race_round, race_round))
-        else:
-            cursor.execute(query_check_round, (selected_year, race_round, ''))
-        
-        round_count = cursor.fetchone()[0]
-        if round_count == 0:
+        if (correctness == 0):
             error_message = f"No races found for round {race_round} in the year {selected_year}."
-            return render_template('race_analysis.html', error_message=error_message, selected_year=selected_year)
+            return render_template('race_analysis.html', error_message=error_message)
+
+
 
         if(selected_type=='lapper'):
             cursor.execute(query_fastest_lap,(selected_year, race_round, selected_year, race_round))
+            lapper_data=cursor.fetchall()
+            return render_template('race_analysis.html',lapper_data=lapper_data,selected_year=selected_year,race_round=race_round)
         elif(selected_type=='qualifying'):
+            cursor.execute("select name from races,qualifying where races.raceId=qualifying.raceId and races.year=%s and races.round=%s",(selected_year,race_round))
+            qualifying_name=cursor.fetchone()[0]
             cursor.execute(query_qualifying,(selected_year, race_round,race_round))
+            qualify_data=cursor.fetchall()
+            return render_template('race_analysis.html',qualify_data=qualify_data,qualifying_name=qualifying_name,selected_year=selected_year,race_round=race_round)
         elif (selected_type=='basic'):
             cursor.execute(query_basic_data,(selected_year, race_round, race_round))
+            basic_data=cursor.fetchall()
+            return render_template('race_analysis.html',basic_data=basic_data,selected_year=selected_year,race_round=race_round)
+        elif (selected_type=='pit_stops'):
+            cursor.execute("select name from races where races.year=%s and races.round=%s",(selected_year,race_round))
+            race_name=cursor.fetchone()[0]
+            cursor.execute(query_pit_stops,(selected_year, race_round, race_round))
+            pit_stops_data=cursor.fetchall()
+            return render_template('race_analysis.html',pit_stops_data=pit_stops_data,selected_year=selected_year,race_round=race_round,race_name=race_name)
         
-        
-        data = cursor.fetchall()
-
-        return render_template('race_analysis.html', data=data, selected_year=selected_year,race_round=race_round,selected_type=selected_type)
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -776,13 +799,9 @@ def rank():
 
 @app.route('/rank_display')
 def rank_display():
-    selected_year=request.args.get('year','')
-    race_round=request.args.get('round','')
-    lap_number=request.args.get('lap_number', '')
-
     try:
         query_lap_rank = """
-        SELECT distinct races.name,races.year,races.date, races.time, races.round, CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, lap_times.position
+        SELECT distinct lap_times.position, CONCAT(drivers.forename, ' ', drivers.surname) as driver_name
         FROM (SELECT name,year,raceId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
         , (SELECT name, constructorId FROM constructors) as constructors
         , (SELECT raceId,driverId,constructorId FROM results) as results
@@ -795,32 +814,41 @@ def rank_display():
         ORDER BY lap_times.position
         """
 
-        query_check_year="SELECT COUNT(*) FROM races WHERE year = %s"
-        query_check_round = "SELECT COUNT(*) FROM races WHERE year = %s AND (round = %s OR %s = '')"
+        selected_year=request.args.get('year','')
+        race_round=request.args.get('round','')
+        lap_number=request.args.get('lap_number', '')
+        
+        query_check="""
+            select count(*) 
+            from 
+            (select raceId from lap_times where lap=%s) as lap_times
+            ,(select raceId,year,round from races where year=%s and round=%s) as races
+            where lap_times.raceId=races.raceId
+        """
+        
+        if(race_round[0]=='-' or race_round=='0'):
+            error_message = f"Please enter the positive round"
+            return render_template('rank.html', error_message=error_message)
 
+        if(lap_number[0]=='-' or lap_number=='0'):
+            error_message = f"Please enter the positive lap number"
+            return render_template('rank.html', error_message=error_message)
 
-        cursor.execute(query_check_year, (selected_year))
-        year_count = cursor.fetchone()[0]
+        cursor.execute(query_check,(lap_number,selected_year,race_round))
+        correctness=cursor.fetchone()[0]
 
-        if year_count == 0:
-            error_message = f"No races found for the year {selected_year}."
-            return render_template('rank.html', error_message=error_message, selected_year=selected_year)
-
-        if (race_round != '0' and race_round[0] != '-'):
-            cursor.execute(query_check_round, (selected_year, race_round, race_round))
-        else:
-            cursor.execute(query_check_round, (selected_year, race_round,''))
-        round_count = cursor.fetchone()[0]
-
-        if round_count == 0:
-            error_message = f"No races found for round {race_round} in the year {selected_year}."
-            return render_template('rank.html', error_message=error_message, selected_year=selected_year)
+        if(correctness==0):
+            error_message=f"No race found for lap {lap_number} in round {race_round} in the year {selected_year}"
+            return render_template('rank.html',error_message=error_message)
 
         cursor.execute(query_lap_rank,(selected_year, race_round, race_round,lap_number))
         
         data = cursor.fetchall()
 
-        return render_template('rank.html', data=data, selected_year=selected_year,race_round=race_round,lap_number=lap_number)
+        cursor.execute("select name from races where year=%s and round=%s",(selected_year,race_round))
+        race_name=cursor.fetchone()[0]
+
+        return render_template('rank.html', data=data, selected_year=selected_year,race_round=race_round,lap_number=lap_number,race_name=race_name)
 
     except Exception as e:
         print(f"Error: {str(e)}")
