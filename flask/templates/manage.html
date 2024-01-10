@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>車手車隊賽道管理</title>
+    <style>
+        body {
+            background-color: black;
+            color: red;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        #main-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #content {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+
+        .section {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .section-content {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .input-container {
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-title">車手車隊賽道管理</div>
+
+    <div id="content">
+        <div class="section" id="section1">
+            <h2>車手</h2>
+            <div class="section-content" id="section1-content"></div>
+            <div class="input-container" id="section1-input-container">
+                <input type="text" id="section1-input" placeholder="New Item">
+                <button onclick="addItem('section1')">Add</button>
+            </div>
+            <div class="action-buttons">
+                <button onclick="toggleInput('section1')">+</button>
+                <button onclick="toggleInput('section1', true)">-</button>
+            </div>
+        </div>
+
+        <div class="section" id="section2">
+            <h2>車隊</h2>
+            <div class="section-content" id="section2-content"></div>
+            <div class="input-container" id="section2-input-container">
+                <input type="text" id="section2-input" placeholder="New Item">
+                <button onclick="addItem('section2')">Add</button>
+            </div>
+            <div class="action-buttons">
+                <button onclick="toggleInput('section2')">+</button>
+                <button onclick="toggleInput('section2', true)">-</button>
+            </div>
+        </div>
+
+        <div class="section" id="section3">
+            <h2>賽道</h2>
+            <div class="section-content" id="section3-content"></div>
+            <div class="input-container" id="section3-input-container">
+                <input type="text" id="section3-input" placeholder="New Item">
+                <button onclick="addItem('section3')">Add</button>
+            </div>
+            <div class="action-buttons">
+                <button onclick="toggleInput('section3')">+</button>
+                <button onclick="toggleInput('section3', true)">-</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder function for fetching data from the server (replace with actual AJAX calls)
+        function fetchData(sectionId) {
+            // Simulate fetching data from the server
+            return ['Item 1', 'Item 2', 'Item 3'];
+        }
+
+        // Placeholder function for adding data to the server (replace with actual AJAX calls)
+        function addItemToServer(sectionId, newItem) {
+            // Simulate adding data to the server
+            console.log(`Added ${newItem} to ${sectionId}`);
+        }
+
+        // Placeholder function for removing data from the server (replace with actual AJAX calls)
+        function removeItemFromServer(sectionId, itemToRemove) {
+            // Simulate removing data from the server
+            console.log(`Removed ${itemToRemove} from ${sectionId}`);
+        }
+
+        // Function to toggle input field visibility
+        function toggleInput(sectionId, isRemove = false) {
+            const inputContainer = document.getElementById(`${sectionId}-input-container`);
+            inputContainer.style.display = inputContainer.style.display === 'none' ? 'block' : 'none';
+
+            // If it's the remove button, clear the input field
+            if (isRemove) {
+                document.getElementById(`${sectionId}-input`).value = '';
+            }
+        }
+
+        // Function to add or remove items
+        function addItem(sectionId) {
+            const inputField = document.getElementById(`${sectionId}-input`);
+            const newItem = inputField.value.trim();
+
+            if (newItem !== '') {
+                const sectionContent = document.getElementById(`${sectionId}-content`);
+                const listItem = document.createElement('div');
+                listItem.textContent = newItem;
+                sectionContent.appendChild(listItem);
+
+                // Add item to the server (replace with actual server interaction)
+                addItemToServer(sectionId, newItem);
+
+                // Clear input field
+                inputField.value = '';
+            }
+        }
+
+        // Fetch initial data for each section
+        document.addEventListener('DOMContentLoaded', function () {
+            const section1Content = document.getElementById('section1-content');
+            const section2Content = document.getElementById('section2-content');
+            const section3Content = document.getElementById('section3-content');
+
+            // Fetch data for each section from the server
+            const data1 = fetchData('section1');
+            const data2 = fetchData('section2');
+            const data3 = fetchData('section3');
+
+            // Update section content
+            section1Content.innerHTML = data1.map(item => `<div>${item}</div>`).join('');
+            section2Content.innerHTML = data2.map(item => `<div>${item}</div>`).join('');
+            section3Content.innerHTML = data3.map(item => `<div>${item}</div>`).join('');
+        });
+    </script>
+</body>
+</html>

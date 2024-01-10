@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Row</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+    </style>
+</head>
+<body>
+    <form id="editForm" method='post' action="{{ url_for("save_row") }}">
+        <div id="header">
+            <h1>資料管理</h1>
+        </div>
+        <label>Table name: {{ tableName }}</label><br><br>
+        <table class="user-table">
+            <tbody>
+                {% for row in data %}
+                    {% for col in row %}
+                        <tr>
+                            <td><input name="values" value="{{ col }}"></td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <input type="hidden" name="tableName" value="{{ tableName }}">
+        <input type="hidden" name="limit" value="{{ limit }}">
+        <input type="hidden" name="currPage" value="{{ currPage }}">
+        <button type="button" onclick="saveRow()">Save</button>
+    </form>
+    <script>
+        function saveRow() {
+            document.getElementById("editForm").submit();
+        }
+    </script>
+</body>
+</html>

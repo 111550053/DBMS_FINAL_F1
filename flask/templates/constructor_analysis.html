@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula 1 World Championship</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #000000;
+        }
+        option{
+            color : #ff0000;
+            background-color: #000000;
+        }
+        select{
+            color : #ff0000;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>車隊分析</h1>
+    </div>
+    <form method="get" action="{{ url_for('constructor_analysis_display') }}">
+
+        <br></br>
+        <div>
+            <h2> search for specific constructor </h2>
+        </div>
+
+        <div>
+            <label for="constructor ">Constructor Name</label>
+            <input type="text" name="constructor_name" id="constructor_name" placeholder="Type constructor's name" value="{{ request.args.get('constructor_name', '') }}">
+        </div>
+    
+        <div>
+            <button type="submit">search</button>
+        </div>
+        
+    </form>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+
+    {% if data %}
+    <h2>Constructor Analysis for "{{ constructor_name }}"</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Year</th>
+                <th>Round</th>
+                <th>Points</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No results found for "{{ constructor_name }}".</p>
+    <p>Constructor ID: {{ constructor_data[0] }}</p> 
+{% endif %}
+    
+</body>
+</html>
