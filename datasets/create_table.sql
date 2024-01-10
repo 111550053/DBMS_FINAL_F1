@@ -90,7 +90,6 @@ create table constructor_standings
     foreign key (constructorId) references constructors(constructorId)
 );
 
-
 create table driver_standings
 (
     driverStandingsId mediumint not null,
@@ -209,7 +208,7 @@ create table status
 (
     statusId smallint not null,
     status varchar(100) not null,
-    primary key (Id)
+    primary key (statusId)
 );
 
 create table users
