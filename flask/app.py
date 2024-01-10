@@ -692,7 +692,7 @@ def race_analysis_display():
                   AND results.constructorId=constructors.constructorId
                   AND results.raceId=races.raceId
             GROUP BY races.raceId)
-            SELECT races.name,races.year,races.date,races.time,races.round,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name, fastestLapTime
+            SELECT races.name,races.year,races.date,races.time,races.round,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, constructors.name,fastestLap, fastestLapTime
             FROM results,drivers,constructors,races,TMP
             WHERE results.driverId=drivers.driverId 
                   AND races.year=%s
