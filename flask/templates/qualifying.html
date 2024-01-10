@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #000000;
+        }
+        option{
+            color : #ff0000;
+            background-color: #000000;
+        }
+        select{
+            color : #ff0000;
+            background-color: #000000;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <h1>Qualifying Data</h1>
+
+    {% if data %}
+        <table>
+            <thead>
+                <tr>
+                    <th>qualifyId</th>
+                    <th>racdId</th>
+                    <th>driverId</th>
+                    <th>constructorId</th>
+                    <th>number</th>
+                    <th>position</th>
+                    <th>q1</th>
+                    <th>q2</th>
+                    <th>q3</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                        <td>{{ row[5] }}</td>
+                        <td>{{ row[6] }}</td>
+                        <td>{{ row[7] }}</td>
+                        <td>{{ row[8] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No qualifying data available.</p>
+    {% endif %}
+
+</body>
+
+</html>
+
+
