@@ -77,10 +77,23 @@
             {% endfor %}
         </tbody>
     </table>
-{% else %}
-    <p>No results found for "{{ constructor_name }}".</p>
-    <p>Constructor ID: {{ constructor_data[0] }}</p> 
-{% endif %}
+    
+    {% else %}  
+    <h2>constructor: </h2>
+    <table style="margin-left: 20px;"> 
+        <th> 
+            <tr style="color: rgb(255, 0, 0); ">     
+            <td>constructor Id</td> 
+            <td>constructor name</td> 
+    </tr> 
+        </th> 
+    {%for row in constructor_data %} 
+    <tr> 
+        <td>{{row[0]}}</td> 
+        <td>{{row[1]}}</td> 
+    {%endfor%} 
+    </table>
+    {% endif %}
     
 </body>
 </html>
