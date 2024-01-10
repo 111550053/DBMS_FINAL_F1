@@ -105,8 +105,9 @@
         <h2>The qualifying in {{ selected_year }} round {{ race_round }}</h2>
         <div>
             <h2>Qualifying Name : {{qualify_data[0][0]}}</h2>
-            <h2>Qualifying Date : {{qualify_data[0][1]}}</h2>
-            <h2>Qualifying Time : {{qualify_data[0][2]}}</h2>
+            <h2>Date : {{qualify_data[0][1]}}</h2>
+            <h2>Time : {{qualify_data[0][2]}}</h2>
+            <h2>Circuit Name : {{qualify_data[0][3]}}</h2>
         </div>
         <table>
             <thead>
@@ -114,24 +115,20 @@
                     <th>driver's name</th>
                     <th>constructor's name</th>
                     <th>position</th>
-                    <th>points</th>
-                    <th>time</th>
-                    <th>fastest lap number</th>
-                    <th>fastest lap time</th>
-                    <th>status</th>
+                    <th>time for q1</th>
+                    <th>time for q2</th>
+                    <th>time for q3</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in qualify_data %}
                     <tr>
-                        <td>{{ row[3] }}</td>
                         <td>{{ row[4] }}</td>
                         <td>{{ row[5] }}</td>
                         <td>{{ row[6] }}</td>
                         <td>{{ row[7] }}</td>
                         <td>{{ row[8] }}</td>
                         <td>{{ row[9] }}</td>
-                        <td>{{ row[10] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -142,6 +139,7 @@
             <h2>Race Name : {{basic_data[0][0]}}</h2>
             <h2>Race Date : {{basic_data[0][1]}}</h2>
             <h2>Race Time : {{basic_data[0][2]}}</h2>
+            <h2>Circuit's name : {{basic_data[0][3]}}</h2>
         </div>
         <table>
             <thead>
@@ -159,7 +157,6 @@
             <tbody>
                 {% for row in basic_data %}
                     <tr>
-                        <td>{{ row[3] }}</td>
                         <td>{{ row[4] }}</td>
                         <td>{{ row[5] }}</td>
                         <td>{{ row[6] }}</td>
@@ -167,6 +164,7 @@
                         <td>{{ row[8] }}</td>
                         <td>{{ row[9] }}</td>
                         <td>{{ row[10] }}</td>
+                        <td>{{ row[11] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -194,8 +192,6 @@
                 {% endfor %}
             </tbody>
         </table>
-    {%else%}
-        <h2>There is no any race in year {{selected_year}} in round {{race_round}}</h2>
     {%endif%}
   
     

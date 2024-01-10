@@ -703,33 +703,34 @@ def race_analysis_display():
                   AND results.fastestLapTime = minLapTime
         """
         query_qualifying="""
-        SELECT distinct races.name,races.date, races.time,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, 
-               constructors.name,results.position,results.points,results.time,results.fastestLap,results.fastestLapTime,status.status
-        FROM (SELECT name,year,raceId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
-        , (SELECT name, constructorId FROM constructors) as constructors
-        , (SELECT raceId,driverId,constructorId,position,points,time,fastestLap,fastestLapTime,statusId FROM results) as results
-        , (SELECT driverId, forename, surname FROM drivers) as drivers
-        , qualifying
-        ,status
-        WHERE results.raceId = races.raceId
-              AND results.driverId = drivers.driverId
-              AND results.constructorId = constructors.constructorId
-              AND races.raceId=qualifying.raceId
-              AND status.statusId=results.statusId
+        select races.name,races.quali_date,races.quali_time,circuits.name,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name,
+               constructors.name,qualifying.position,qualifying.q1,qualifying.q2,qualifying.q3
+        from(select raceId,year,round,circuitId,name,quali_date,quali_time from races where year=%s and round=%s) as races
+        ,(select qualifyId,raceId,driverId,constructorId,position,q1,q2,q3 from qualifying) as qualifying
+        ,(select driverId,forename,surname from drivers) as drivers
+        ,(select circuitId,name from circuits) as circuits
+        ,(select constructorId,name from constructors) as constructors
+        where races.raceId=qualifying.raceId
+              and circuits.circuitId=races.circuitId
+              and drivers.driverId=qualifying.driverId
+              and constructors.constructorId=qualifying.constructorId
+
         """
 
         query_basic_data = """
-        SELECT races.name,races.date, races.time,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, 
+        SELECT races.name,races.date, races.time,circuits.name,CONCAT(drivers.forename, ' ', drivers.surname) as driver_name, 
                constructors.name,results.position,results.points,results.time,results.fastestLap,results.fastestLapTime,status.status
-        FROM (SELECT name,year,raceId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
+        FROM (SELECT name,year,raceId,circuitId, date, time, round FROM races WHERE year = %s AND (round = %s OR %s = '')) as races
         , (SELECT name, constructorId FROM constructors) as constructors
         , (SELECT raceId,driverId,constructorId,position,points,time,fastestLap,fastestLapTime,statusId FROM results) as results
         , (SELECT driverId, forename, surname FROM drivers) as drivers
+        , (SELECT circuitId,name from circuits) as circuits
         , status
         WHERE results.raceId = races.raceId
               AND results.driverId = drivers.driverId
               AND results.constructorId = constructors.constructorId
               AND status.statusId=results.statusId
+              AND races.circuitId=circuits.circuitId
         """
         #max_lap=6
         query_pit_stops="""
@@ -771,11 +772,9 @@ def race_analysis_display():
             lapper_data=cursor.fetchall()
             return render_template('race_analysis.html',lapper_data=lapper_data,selected_year=selected_year,race_round=race_round)
         elif(selected_type=='qualifying'):
-            cursor.execute("select name from races,qualifying where races.raceId=qualifying.raceId and races.year=%s and races.round=%s",(selected_year,race_round))
-            qualifying_name=cursor.fetchone()[0]
-            cursor.execute(query_qualifying,(selected_year, race_round,race_round))
+            cursor.execute(query_qualifying,(selected_year, race_round))
             qualify_data=cursor.fetchall()
-            return render_template('race_analysis.html',qualify_data=qualify_data,qualifying_name=qualifying_name,selected_year=selected_year,race_round=race_round)
+            return render_template('race_analysis.html',qualify_data=qualify_data,selected_year=selected_year,race_round=race_round)
         elif (selected_type=='basic'):
             cursor.execute(query_basic_data,(selected_year, race_round, race_round))
             basic_data=cursor.fetchall()
