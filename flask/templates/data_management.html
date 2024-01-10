@@ -24,7 +24,7 @@
                 <tr tableId = "{{row[0]}}"> 
                     <td>{{row[0]}}</td>
                     <form method='GET' action="{{url_for("edit_table")}}">
-                        <td><button name=table value={{row[0]}} type="submit">Edit</button></td>
+                        <td><button name=table value={{row[0]}} {% if row[0] == 'lap_times'%} disabled {% elif row[0] == 'pit_stops'%} disabled {% endif %} type="submit">Edit</button></td>
                     </form>
                 </tr>
             {%endfor%} 

@@ -18,7 +18,7 @@ create table circuits
 
 create table constructors
 (
-    constructorId smallint not null,
+    constructorId smallint not null AUTO_INCREMENT,
     constructorRef varchar(50) not null,
     name varchar(50) not null,
     nationality varchar(50) not null,
@@ -28,7 +28,7 @@ create table constructors
 
 create table drivers
 (
-    driverId smallint not null,
+    driverId smallint not null AUTO_INCREMENT,
     driverRef varchar(50) not null,
     number smallint,
     code char(3),

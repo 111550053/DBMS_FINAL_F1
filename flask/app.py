@@ -3,8 +3,8 @@ import pymysql
 
 db_connection = {
     "host" : "127.0.0.1",
-    "user" : "eric" ,
-    "password" : "123456" ,
+    "user" : "root" ,
+    "password" : "" ,
     "db" : "f1",
     "charset" : "utf8"
 }
@@ -13,11 +13,6 @@ db = pymysql.connect(**db_connection)
 cursor = db.cursor()
 
 app = Flask(__name__)
-
-# some variabls
-currUserName = ""
-currUserPassword = ""
-isadmin = False
 
 
 @app.route("/")
@@ -67,20 +62,218 @@ def afterlogin():
 
         if ((currUserName, currUserPassword, 1) in result):
             isadmin = True
-            return render_template("afterlogin.html", username=currUserName, admin=isadmin)
+            cursor.execute(f"select userId from users where userName='{currUserName}'")
+            userId = cursor.fetchall()[0][0]
+            return render_template("afterlogin.html", userId=userId, username=currUserName, admin=isadmin)
         elif ((currUserName, currUserPassword, 0) in result):
             isadmin = False
-            return render_template("afterlogin.html", username=currUserName, admin=isadmin)
+            cursor.execute(f"select userId from users where userName='{currUserName}'")
+            userId = cursor.fetchall()[0][0]
+            return render_template("afterlogin.html", userId=userId, username=currUserName, admin=isadmin)
         else:
-            currUserName = ""
-            currUserPassword = ""
-            isadmin = False
             return render_template("login.html", errormessage="invalid user name or password!")
 
 
-@app.route("/manage", methods=["GET", "POST"])
-def manage():
-    return render_template("manage.html")
+@app.route("/my_driver_constructor", methods=["GET", "POST"])
+def my_driver_constructor():
+    userId = request.args.get('userId', "")
+
+    query = f"""select d.driverId, d.driverRef, d.number, d.code, d.forename, d.surname, d.dob, d.nationality, d.url
+                from custom_content as cc
+                inner join drivers as d
+                on cc.customcontentId = d.driverId
+                where cc.userId={userId} and cc.customType=1"""
+
+    cursor.execute(query)
+    myDriver = cursor.fetchall()
+
+    query = f"""select c.constructorId, c.constructorRef, c.name, c.nationality, c.url
+                from custom_content as cc
+                inner join constructors as c
+                on cc.customcontentId = c.constructorId
+                where cc.userId={userId} and cc.customType=2"""
+
+    cursor.execute(query)
+    myConstructor = cursor.fetchall()
+
+    return render_template("my_driver_constructor.html", userId=userId, myDriver=myDriver, myConstructor=myConstructor)
+
+
+@app.route("/my_driver_add", methods=["GET", "POST"])
+def my_driver_add():
+    userId = request.args.get('userId', "")
+    return render_template("my_driver_add.html", userId=userId)
+
+
+@app.route("/my_driver_save", methods=["GET", "POST"])
+def my_driver_save():
+    userId = request.args.get('userId', "")
+    driverRef = request.args.get("driverRef", "")
+    number = request.args.get("number", "")
+    code = request.args.get("code", "")
+    forename = request.args.get("forename", "")
+    surname = request.args.get("surname", "")
+    dob = request.args.get("dob", "")
+    nationality = request.args.get("nationality", "")
+    url = request.args.get("url", "")
+
+    query = f'''insert into drivers (driverRef,number,code,forename,surname,dob,nationality,url)
+                values ('{driverRef}', {number}, '{code}', '{forename}', '{surname}', '{dob}', '{nationality}', '{url}')'''
+
+    cursor.execute(query)
+    db.commit()
+
+    query = f'''select driverId from drivers where driverRef='{driverRef}' and
+                number={number} and code='{code}' and forename='{forename}' and 
+                surname='{surname}' and dob='{dob}' and nationality='{nationality}'
+                and url='{url}'
+                '''
+
+    cursor.execute(query)
+    driverId = cursor.fetchall()[0][0]
+
+    query = f'''insert into custom_content (userId,customType,customcontentId)
+                values ({userId}, 1, {driverId})'''
+
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
+
+
+@app.route("/my_driver_delete", methods=["GET", "POST"])
+def my_driver_delete():
+    driverId = request.args.get('driverId', "")
+    userId = request.args.get('userId', "")
+
+    query = f"delete from drivers where driverId = {driverId}"
+    cursor.execute(query)
+    db.commit()
+
+    query = f"delete from custom_content where customcontentId = {driverId} and userId = {userId} and customType = 1"
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
+
+
+@app.route("/my_driver_edit", methods=["GET", "POST"])
+def my_driver_edit():
+    driverId = request.args.get('driverId', "")
+    userId = request.args.get('userId', "")
+
+    query = f"select * from drivers where driverId = {driverId}"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    return render_template("my_driver_edit.html", data=data[0], userId=userId)
+
+
+@app.route("/my_driver_update", methods=["GET", "POST"])
+def my_driver_update():
+    userId = request.args.get('userId', "")
+    driverId = request.args.get('driverId', "")
+    driverRef = request.args.get("driverRef", "")
+    number = request.args.get("number", "")
+    code = request.args.get("code", "")
+    forename = request.args.get("forename", "")
+    surname = request.args.get("surname", "")
+    dob = request.args.get("dob", "")
+    nationality = request.args.get("nationality", "")
+    url = request.args.get("url", "")
+
+    query = f'''update drivers set driverRef='{driverRef}',
+                number={number}, code='{code}', forename='{forename}',
+                surname='{surname}', dob='{dob}', nationality='{nationality}', url='{url}'
+                where driverId={driverId}'''
+
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
+
+
+@app.route("/my_constructor_add", methods=["GET", "POST"])
+def my_constructor_add():
+    userId = request.args.get('userId', "")
+    return render_template("my_constructor_add.html", userId=userId)
+
+
+@app.route("/my_constructor_save", methods=["GET", "POST"])
+def my_constructor_save():
+    userId = request.args.get('userId', "")
+    constructorRef = request.args.get('constructorRef', "")
+    name = request.args.get('name', "")
+    nationality = request.args.get('nationality', "")
+    url = request.args.get('url', "")
+
+    query = f'''insert into constructors (constructorRef,name,nationality,url)
+                values ('{constructorRef}', '{name}', '{nationality}', '{url}')'''
+
+    cursor.execute(query)
+    db.commit()
+
+    query = f'''select constructorId from constructors where constructorRef='{constructorRef}' and
+                name='{name}' and nationality='{nationality}' and url='{url}'
+            '''
+
+    cursor.execute(query)
+    constructorId = cursor.fetchall()[0][0]
+    
+    query = f'''insert into custom_content (userId,customType,customcontentId)
+                values ({userId}, 2, {constructorId})'''
+
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
+
+
+@app.route("/my_constructor_edit", methods=["GET", "POST"])
+def my_constructor_edit():
+    constructorId = request.args.get('constructorId', "")
+    userId = request.args.get('userId', "")
+
+    query = f"select * from constructors where constructorId = {constructorId}"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    return render_template("my_constructor_edit.html", data=data[0], userId=userId)
+
+
+@app.route("/my_constructor_delete", methods=["GET", "POST"])
+def my_constructor_delete():
+    constructorId = request.args.get('constructorId', "")
+    userId = request.args.get('userId', "")
+
+    query = f"delete from constructors where constructorId = {constructorId}"
+    cursor.execute(query)
+    db.commit()
+
+    query = f"delete from custom_content where customcontentId = {constructorId} and userId = {userId} and customType = 2"
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
+
+
+@app.route("/my_constructor_update", methods=["GET", "POST"])
+def my_constructor_update():
+    userId = request.args.get('userId', "")
+    constructorId = request.args.get('constructorId', "")
+    constructorRef = request.args.get("constructorRef", "")
+    name = request.args.get("name", "")
+    nationality = request.args.get("nationality", "")
+    url = request.args.get("url", "")
+
+    query = f'''update constructors set constructorRef='{constructorRef}',
+                name='{name}', nationality='{nationality}', url='{url}'
+                where constructorId={constructorId}'''
+
+    cursor.execute(query)
+    db.commit()
+
+    return redirect(url_for("my_driver_constructor", userId=userId))
 
 
 @app.route("/user_management", methods=["GET", "POST"])

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Driver Edit</title>
+    <link href="static/default.css" rel="stylesheet" type="text/css" />
+    <style>
+    </style>
+</head>
+<body>
+    <form id="editForm" method='get' action="{{ url_for("my_driver_update") }}">
+        <div id="header">
+            <h1>編輯我的車手</h1>
+        </div>
+        <table class="user-table">
+            <tbody>
+                <tr>
+                    <th>column</th>
+                    <th>value</th>
+                </tr>
+                <tr>
+                    <td>driverId</td>
+                    <td><input name="driverId" value="{{ data[0] }}"></td>
+                </tr>
+                <tr>
+                    <td>driverRef</td>
+                    <td><input name="driverRef" value="{{ data[1] }}"></td>
+                </tr>
+                <tr>
+                    <td>number</td>
+                    <td><input name="number" value="{{ data[2] }}"></td>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td><input name="code" value="{{ data[3] }}"></td>
+                </tr>
+                <tr>
+                    <td>forename</td>
+                    <td><input name="forename" value="{{ data[4] }}"></td>
+                </tr>
+                <tr>
+                    <td>surname</td>
+                    <td><input name="surname" value="{{ data[5] }}"></td>
+                </tr>
+                <tr>
+                    <td>dob</td>
+                    <td><input name="dob" value="{{ data[6] }}"></td>
+                </tr>
+                <tr>
+                    <td>nationality</td>
+                    <td><input name="nationality" value="{{ data[7] }}"></td>
+                </tr>
+                <tr>
+                    <td>url</td>
+                    <td><input name="url" value="{{ data[8] }}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" name="userId" value="{{ userId }}">
+        <button type="submit">Save</button>
+    </form>
+    <script>
+        function saveRow() {
+            document.getElementById("editForm").submit();
+        }
+    </script>
+</body>
+</html>

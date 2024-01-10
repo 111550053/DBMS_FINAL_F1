@@ -22,7 +22,7 @@
         </form>
     </div>
     <div id="additional-buttons">
-        <button onclick="invalid()">車手、車隊、賽車管理</button>
+        <button onclick="invalid()">我的車手、車隊</button>
         <button onclick="invalid()">資料管理</button>
         <button onclick="invalid()">使用者管理</button>
         <form method="get" action="/race_analysis">
@@ -37,15 +37,8 @@
         <form method="post" action="/circuit_analysis">
             <button type="submit">賽道分析</button>
         </form>
-        <button onclick="invalid()">創建車手、車隊、賽車</button>
     </div>
     <script>
-        function redirectToSignIn() {
-            window.location.href = 'login.html';
-        }
-        function redirectToSignUp() {
-            window.location.href = 'signup.html';
-        }
         function invalid() {
             alert('You are not logged in yet.');
         }
