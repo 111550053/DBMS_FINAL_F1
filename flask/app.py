@@ -359,7 +359,7 @@ primaryKeys = {"circuits": "circuitId",
                "results": "resultId",
                "seasons": "year",
                "sprint_results": "resultId",
-               "status": "Id",
+               "status": "statusId",
                "users": "userId",
                "custom_content": "customDataId"}
 
